@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>奇迹小卖部 - MC物资点单商城</title>
+    <title>奇迹小卖部 - MC线上点单商城</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css">
     <script>
@@ -14,78 +14,54 @@
                         mainPurple: '#9370E8',
                         mainOrange: '#FF8A18',
                         lightBg: '#F5F3FF',
-                        cardPurple: '#EAE5FF'
                     }
                 }
             }
         }
     </script>
     <style>
-        /* MC像素图片清晰渲染 */
         .mc-item-img {
             image-rendering: pixelated;
             image-rendering: crisp-edges;
         }
-        /* 滚动条美化 */
-        ::-webkit-scrollbar {
-            width: 6px;
-            height: 6px;
-        }
-        ::-webkit-scrollbar-thumb {
-            background: #9370E8;
-            border-radius: 4px;
-        }
-        /* 按钮按压动效 */
-        .btn-press:active {
-            transform: scale(0.97);
-            opacity: 0.9;
-        }
-        /* 弹窗遮罩动画 */
-        .modal-enter {
-            animation: fadeIn 0.2s ease;
-        }
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-thumb { background: #9370E8; border-radius: 4px; }
+        .btn-press:active { transform: scale(0.97); opacity: 0.9; }
+        .modal-enter { animation: fadeIn 0.2s ease; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
     </style>
 </head>
 <body class="bg-lightBg min-h-screen font-sans">
-    <!-- 首页主界面 -->
+    <!-- 首页主页面 -->
     <div id="pageHome">
-        <!-- 顶部导航栏 -->
+        <!-- 顶部导航 -->
         <header class="bg-mainPurple px-4 py-3 flex items-center justify-between shadow-md sticky top-0 z-40">
             <h1 class="text-white text-xl font-bold flex items-center gap-2">
                 <i class="fa fa-shopping-bag"></i> 奇迹小卖部
             </h1>
-            <!-- 搜索框 -->
             <div class="flex flex-1 mx-4 max-w-lg">
-                <input id="searchInput" type="text" placeholder="搜索商品..." class="w-full px-3 py-1.5 rounded-l-md outline-none text-sm">
+                <input id="searchInput" type="text" placeholder="搜索商品名称" class="w-full px-3 py-1.5 rounded-l-md outline-none text-sm">
                 <button onclick="searchGoods()" class="bg-indigo-700 text-white px-4 py-1.5 rounded-r-md btn-press text-sm">搜索</button>
             </div>
-            <div class="flex items-center gap-4">
-                <span class="text-white text-sm hidden md:block">112E1R32</span>
-                <button onclick="openServiceModal()" class="text-white btn-press"><i class="fa fa-comment-o text-lg"></i></button>
-                <!-- 新增送货员入口 -->
-                <button onclick="openDeliveryPasswordModal()" class="text-white btn-press border border-white px-2 py-1 rounded text-sm">送货员后台</button>
-                <button onclick="logoutTip()" class="text-white btn-press"><i class="fa fa-sign-out"></i> 退出</button>
+            <div class="flex items-center gap-3">
+                <span id="showUserName" class="text-white text-sm hidden md:block"></span>
+                <button onclick="openDeliveryPwdModal()" class="border border-white px-2 py-1 rounded text-white text-sm btn-press">送货员后台</button>
+                <button onclick="logoutUser()" class="text-white btn-press"><i class="fa fa-sign-out"></i> 退出</button>
             </div>
         </header>
 
-        <!-- 商品网格区域 -->
+        <!-- 商品展示区 -->
         <main class="container mx-auto px-3 py-6 pb-24">
-            <div id="goodsGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
-                <!-- JS渲染商品卡片 -->
-            </div>
+            <div id="goodsGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4"></div>
         </main>
 
-        <!-- 底部导航栏 -->
+        <!-- 底部导航 -->
         <div class="fixed bottom-0 left-0 w-full bg-white shadow-inner flex justify-center gap-6 py-3 z-30">
-            <button onclick="switchTab('order')" class="flex items-center gap-1 text-gray-600 btn-press">
-                <i class="fa fa-search"></i> 订单查询
+            <button onclick="alert('订单查询功能开发中')" class="flex items-center gap-1 text-gray-600 btn-press">
+                <i class="fa fa-search"></i> 我的订单
             </button>
-            <button onclick="switchTab('home')" class="flex items-center gap-1 text-mainPurple font-medium btn-press">
-                <i class="fa fa-home"></i> 首页
+            <button onclick="switchPageHome()" class="flex items-center gap-1 text-mainPurple font-medium btn-press">
+                <i class="fa fa-home"></i> 商城首页
             </button>
         </div>
 
@@ -95,131 +71,163 @@
             <span id="cartBadgeNum" class="absolute -top-1 -right-1 bg-red-500 w-5 h-5 rounded-full text-xs flex items-center justify-center">0</span>
         </button>
 
-        <!-- 左侧悬浮客服按钮 -->
+        <!-- 左下角客服按钮 -->
         <button onclick="openServiceModal()" class="fixed bottom-16 left-4 w-12 h-12 rounded-full bg-green-500 text-white shadow-lg flex items-center justify-center text-lg btn-press z-40">
             <i class="fa fa-comments"></i>
         </button>
     </div>
 
-    <!-- 配送员密码验证弹窗（新增） -->
-    <div id="deliveryPasswordModal" class="fixed inset-0 bg-black/60 z-[1000] hidden modal-enter flex items-center justify-center">
+    <!-- 登录弹窗 -->
+    <div id="loginModal" class="fixed inset-0 bg-black/60 z-[1001] hidden modal-enter flex items-center justify-center">
         <div class="bg-white rounded-xl p-6 w-[90%] max-w-sm">
-            <h2 class="text-xl font-bold mb-4 text-center text-mainPurple">配送员验证</h2>
-            <p class="text-gray-500 mb-3 text-center">请输入后台访问密码</p>
-            <input id="deliveryPwdInput" type="password" placeholder="请输入密码" class="w-full border rounded-lg px-3 py-2 mb-4">
-            <div class="grid grid-cols-2 gap-3">
-                <button onclick="closeDeliveryPasswordModal()" class="py-2 border border-gray-300 rounded-lg btn-press">取消</button>
-                <button onclick="checkDeliveryPassword()" class="py-2 bg-mainPurple text-white rounded-lg btn-press">确认登录</button>
+            <h2 class="text-xl font-bold mb-4 text-center text-mainPurple">用户登录</h2>
+            <div class="space-y-3 mb-4">
+                <input id="loginUsername" type="text" placeholder="输入账号" class="w-full border rounded-lg px-3 py-2">
+                <input id="loginPwd" type="password" placeholder="输入密码" class="w-full border rounded-lg px-3 py-2">
             </div>
+            <div class="grid grid-cols-2 gap-3 mb-3">
+                <button onclick="loginSubmit()" class="py-2 bg-mainPurple text-white rounded-lg btn-press">登录</button>
+                <button onclick="switchToRegister()" class="py-2 border border-mainPurple text-mainPurple rounded-lg btn-press">注册账号</button>
+            </div>
+            <button onclick="closeLoginModal()" class="w-full py-2 border border-gray-300 rounded-lg text-gray-500 btn-press">关闭</button>
         </div>
     </div>
 
-    <!-- 送货员后台页面 -->
-    <div id="pageDelivery" class="fixed inset-0 bg-gray-100 overflow-auto z-[995] hidden p-4 md:p-8">
-        <div class="max-w-4xl mx-auto">
-            <div class="flex justify-between items-center mb-6">
-                <h2 class="text-2xl font-bold text-mainPurple"><i class="fa fa-truck mr-2"></i>送货员订单后台</h2>
-                <button onclick="closeDeliveryPage()" class="px-4 py-2 bg-gray-300 rounded-lg btn-press">返回商城首页</button>
+    <!-- 注册弹窗 -->
+    <div id="registerModal" class="fixed inset-0 bg-black/60 z-[1001] hidden modal-enter flex items-center justify-center">
+        <div class="bg-white rounded-xl p-6 w-[90%] max-w-sm">
+            <h2 class="text-xl font-bold mb-4 text-center text-mainPurple">新用户注册</h2>
+            <div class="space-y-3 mb-4">
+                <input id="regUsername" type="text" placeholder="自定义账号" class="w-full border rounded-lg px-3 py-2">
+                <input id="regPwd" type="password" placeholder="设置密码（至少4位）" class="w-full border rounded-lg px-3 py-2">
+                <input id="regPwd2" type="password" placeholder="重复密码" class="w-full border rounded-lg px-3 py-2">
             </div>
-            <div id="deliveryOrderWrap" class="space-y-4">
-                <!-- 订单列表JS渲染 -->
+            <div class="grid grid-cols-2 gap-3 mb-3">
+                <button onclick="registerSubmit()" class="py-2 bg-mainPurple text-white rounded-lg btn-press">完成注册</button>
+                <button onclick="switchToLogin()" class="py-2 border border-mainPurple text-mainPurple rounded-lg btn-press">已有账号登录</button>
             </div>
-            <div id="deliveryEmptyTip" class="text-center text-gray-500 py-20 text-lg hidden">
-                <i class="fa fa-file-text-o text-4xl block mb-3"></i>暂无待配送订单
-            </div>
+            <button onclick="closeRegisterModal()" class="w-full py-2 border border-gray-300 rounded-lg text-gray-500 btn-press">关闭</button>
         </div>
     </div>
 
-    <!-- 客服弹窗（左侧绿色按钮点击弹出） -->
+    <!-- 客服弹窗 -->
     <div id="serviceModal" class="fixed inset-0 bg-black/60 z-[999] hidden modal-enter flex items-center justify-center">
         <div class="bg-white rounded-xl p-6 w-[90%] max-w-sm text-center">
             <h2 class="text-xl font-bold mb-4 text-mainPurple">在线客服</h2>
-            <p class="text-gray-600 mb-2">客服QQ</p>
-            <p id="qqText" class="text-2xl font-bold text-mainOrange mb-4">3258698798</p>
+            <p class="text-gray-500 mb-2">客服QQ</p>
+            <p id="qqTextShow" class="text-2xl font-bold text-mainOrange mb-4">3258698798</p>
             <button onclick="copyQQ()" class="w-full py-2 bg-mainPurple text-white rounded-lg btn-press mb-3">复制QQ号</button>
             <button onclick="closeServiceModal()" class="w-full py-2 border border-gray-300 rounded-lg text-gray-600 btn-press">关闭</button>
         </div>
     </div>
 
-    <!-- 登录弹窗（未登录显示） -->
-    <div id="loginModal" class="fixed inset-0 bg-black/60 z-[998] hidden modal-enter flex items-center justify-center">
+    <!-- 送货员密码验证弹窗 -->
+    <div id="deliveryPwdModal" class="fixed inset-0 bg-black/60 z-[1000] hidden modal-enter flex items-center justify-center">
         <div class="bg-white rounded-xl p-6 w-[90%] max-w-sm">
-            <h2 class="text-xl font-bold mb-4 text-center">奇迹小卖部</h2>
-            <p class="text-gray-500 mb-4 text-center">请登录后选购商品</p>
-            <button onclick="closeLogin()" class="w-full py-2 bg-mainPurple text-white rounded-lg btn-press">登录</button>
+            <h2 class="text-xl font-bold mb-4 text-center text-mainPurple">配送员身份验证</h2>
+            <p class="text-gray-500 mb-3 text-center">请输入后台管理密码</p>
+            <input id="deliveryPwdInput" type="password" placeholder="后台密码" class="w-full border rounded-lg px-3 py-2 mb-4">
+            <div class="grid grid-cols-2 gap-3">
+                <button onclick="closeDeliveryPwdModal()" class="py-2 border border-gray-300 rounded-lg btn-press">取消</button>
+                <button onclick="checkDeliveryPassword()" class="py-2 bg-mainPurple text-white rounded-lg btn-press">确认进入</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 送货员管理后台页面 -->
+    <div id="pageDeliveryAdmin" class="fixed inset-0 bg-gray-100 overflow-auto z-[995] hidden p-4 md:p-8">
+        <div class="max-w-5xl mx-auto">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-2xl font-bold text-mainPurple"><i class="fa fa-truck mr-2"></i>送货员管理后台</h2>
+                <button onclick="closeDeliveryAdmin()" class="px-4 py-2 bg-gray-300 rounded-lg btn-press">返回商城</button>
+            </div>
+
+            <!-- 商品管理区域：新增/编辑商品 -->
+            <div class="bg-white rounded-xl p-5 shadow mb-8">
+                <h3 class="text-lg font-bold mb-4 text-mainPurple">商品管理（新增/修改商品）</h3>
+                <div class="grid md:grid-cols-3 gap-4 mb-4">
+                    <input id="editGoodsName" type="text" placeholder="商品名称" class="border rounded-lg px-3 py-2">
+                    <input id="editGoodsImg" type="text" placeholder="商品图片URL" class="border rounded-lg px-3 py-2">
+                    <div class="flex gap-2">
+                        <button onclick="addNewGoods()" class="flex-1 py-2 bg-green-500 text-white rounded-lg btn-press">新增商品</button>
+                        <button onclick="saveEditGoods()" class="flex-1 py-2 bg-mainOrange text-white rounded-lg btn-press">保存修改</button>
+                    </div>
+                </div>
+                <input type="hidden" id="editGoodsId">
+                <div id="adminGoodsList" class="grid grid-cols-2 sm:grid-cols-4 gap-3"></div>
+            </div>
+
+            <!-- 订单列表区域 -->
+            <div class="bg-white rounded-xl p-5 shadow">
+                <h3 class="text-lg font-bold mb-4 text-mainPurple">待配送订单列表</h3>
+                <div id="orderWrap" class="space-y-4"></div>
+                <div id="emptyOrderTip" class="text-center text-gray-500 py-16 text-lg hidden">
+                    <i class="fa fa-file-text-o text-4xl block mb-3"></i>暂无新订单
+                </div>
+            </div>
         </div>
     </div>
 
     <!-- 购物车侧边弹窗 -->
-    <div id="cartModal" class="fixed inset-0 bg-black/60 z-[997] hidden modal-enter">
+    <div id="cartPanel" class="fixed inset-0 bg-black/60 z-[997] hidden modal-enter">
         <div class="absolute right-0 top-0 h-full w-full sm:w-[420px] bg-white shadow-2xl flex flex-col">
             <div class="p-4 bg-mainPurple text-white flex justify-between items-center">
                 <h2 class="text-lg font-bold">我的购物车</h2>
                 <button onclick="closeCartPanel()" class="text-white text-xl btn-press">✕</button>
             </div>
-            <!-- 购物车商品列表 -->
             <div class="flex-1 overflow-y-auto p-4">
                 <div id="cartEmptyTip" class="h-full flex flex-col items-center justify-center text-gray-400">
                     <i class="fa fa-shopping-cart text-5xl mb-3"></i>
-                    <p>购物车暂无商品</p>
+                    <p>购物车空空如也</p>
                 </div>
-                <div id="cartItemList" class="hidden space-y-3"></div>
+                <div id="cartItemWrap" class="hidden space-y-3"></div>
             </div>
-            <!-- 购物车底部操作 -->
-            <div id="cartBottomBox" class="hidden border-t p-4">
+            <div id="cartBottomBar" class="hidden border-t p-4">
                 <div class="flex justify-between items-center mb-4">
-                    <span class="font-bold text-lg">合计: <span class="text-red-500 text-xl">¥<span id="cartTotalMoney">0.00</span></span></span>
+                    <span class="font-bold text-lg">合计：<span class="text-red-500 text-xl">¥<span id="cartTotalPrice">0.00</span></span></span>
                 </div>
                 <div class="grid grid-cols-2 gap-3">
                     <button onclick="clearAllCart()" class="py-2 bg-red-100 text-red-500 rounded-lg btn-press">清空购物车</button>
-                    <button onclick="goCheckout()" class="py-2 bg-mainPurple text-white rounded-lg btn-press">去结算 →</button>
+                    <button onclick="goCheckoutPage()" class="py-2 bg-mainPurple text-white rounded-lg btn-press">去结算</button>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- 结算确认订单页面 -->
+    <!-- 结算下单页面 -->
     <div id="pageCheckout" class="fixed inset-0 bg-gray-100 overflow-auto z-[996] hidden p-4 md:p-8">
         <div class="max-w-2xl mx-auto bg-white rounded-xl p-6 shadow-lg">
             <h2 class="text-xl font-bold border-l-4 border-mainOrange pl-3 mb-6">确认订单 & 付款</h2>
-
-            <!-- 购物车商品列表 -->
             <div class="mb-6">
                 <div class="flex justify-between items-center mb-3">
-                    <h3 class="font-medium flex items-center gap-1"><i class="fa fa-shopping-cart"></i> 购物车商品</h3>
+                    <h3 class="font-medium flex items-center gap-1"><i class="fa fa-shopping-cart"></i> 选购商品</h3>
                     <button onclick="clearAllCart()" class="bg-red-500 text-white px-3 py-1 rounded text-sm btn-press">清空购物车</button>
                 </div>
-                <div id="checkoutGoodsList" class="space-y-2 mb-4"></div>
-                <!-- 金额汇总 -->
+                <div id="checkoutGoodsWrap" class="space-y-2 mb-4"></div>
                 <div class="space-y-2 text-right">
                     <div class="flex justify-between">
-                        <span>商品总额:</span>
-                        <span>¥<span id="checkoutSubTotal">0.00</span></span>
+                        <span>商品总额</span>
+                        <span>¥<span id="checkoutTotalNum">0.00</span></span>
                     </div>
                     <div class="flex justify-between">
-                        <span>配送费:</span>
+                        <span>配送费</span>
                         <span>¥0.00</span>
                     </div>
                     <div class="flex justify-between text-xl font-bold text-red-500 pt-2 border-t">
-                        <span>应付总额:</span>
-                        <span>¥<span id="checkoutTotal">0.00</span></span>
+                        <span>应付总额</span>
+                        <span>¥<span id="checkoutPayNum">0.00</span></span>
                     </div>
                 </div>
-                <p id="minTipText" class="text-orange-500 text-sm mt-2 hidden"><i class="fa fa-exclamation-triangle"></i> 订单金额不足1元，请继续添加商品</p>
+                <p id="minOrderTip" class="text-orange-500 text-sm mt-2 hidden"><i class="fa fa-exclamation-triangle"></i> 订单最低消费1元，请多选购商品</p>
             </div>
 
-            <!-- ========== 修复后收款码区域 核心改动 ========== -->
+            <!-- 收款码区域 1:1不变形 -->
             <div class="bg-amber-50 rounded-xl p-4 mb-6">
                 <p class="text-center font-medium mb-4 text-gray-700">店长收款码</p>
                 <div class="flex justify-center">
-                    <!-- 固定正方形容器，限制最大宽度 -->
-                    <div class="border-2 border-mainOrange rounded-xl p-3 bg-black w-full max-w-[210px]">
-                        <!-- 1:1正方形容器，图片保持原始比例不拉伸 -->
+                    <div class="border-2 border-mainOrange rounded-xl p-3 bg-black w-full max-w-[280px]">
                         <div class="aspect-square w-full overflow-hidden rounded">
-                            <img id="payCodeImg" 
-                                 src="https://p3-flow-imagex-sign.byteimg.com/tos-cn-i-a9rns2rl98/34111341343b403893d3d099129d3151~tplv-a9rns2rl98-image.image" 
-                                 alt="店长赞赏码" 
-                                 class="w-full h-full object-contain mc-item-img block">
+                            <img id="payCodeImg" src="https://p3-flow-imagex-sign.byteimg.com/tos-cn-i-a9rns2rl98/34111341343b403893d3d099129d3151~tplv-a9rns2rl98-image.image" alt="收款码" class="w-full h-full object-contain mc-item-img block">
                         </div>
                         <p class="text-white text-center mt-3 text-lg">“给点吧穷苦了”</p>
                         <div class="bg-amber-500 rounded-b-lg py-2 mt-2">
@@ -227,241 +235,351 @@
                         </div>
                     </div>
                 </div>
-                <p class="text-center text-orange-600 text-sm mt-3">点击二维码可放大，选择支付方式后扫码付款<br>付款后点击下方提交订单即可</p>
+                <p class="text-center text-orange-600 text-sm mt-3">扫码付款后提交订单，配送员会送货上门</p>
             </div>
 
-            <!-- 收货信息表单 -->
+            <!-- 用户收货信息 -->
             <div class="space-y-4 mb-6">
                 <div>
-                    <label class="block font-medium mb-1">收货人ID (游戏ID)</label>
-                    <input id="gameIdInput" type="text" value="112E1R32" class="w-full border rounded-lg px-3 py-2 outline-mainPurple">
+                    <label class="block font-medium mb-1">收货人游戏ID（客户姓名）</label>
+                    <input id="buyerNameInput" type="text" value="" class="w-full border rounded-lg px-3 py-2 outline-mainPurple">
                 </div>
                 <div>
-                    <label class="block font-medium mb-1">QQ号</label>
-                    <input id="qqInput" type="text" value="3397738623" class="w-full border rounded-lg px-3 py-2 outline-mainPurple">
+                    <label class="block font-medium mb-1">联系QQ</label>
+                    <input id="buyerQQInput" type="text" value="" class="w-full border rounded-lg px-3 py-2 outline-mainPurple">
                 </div>
                 <div>
-                    <label class="block font-medium mb-1">游戏坐标 (格式: x y z)</label>
-                    <input id="posInput" type="text" placeholder="例如: 11214 10 11556" class="w-full border rounded-lg px-3 py-2 outline-mainPurple">
-                    <p class="text-gray-400 text-xs mt-1">请输入三个整数，中间用空格分隔 (支持负数)</p>
+                    <label class="block font-medium mb-1">送货坐标 X Y Z</label>
+                    <input id="posInput" type="text" placeholder="例：100 64 -200" class="w-full border rounded-lg px-3 py-2 outline-mainPurple">
+                    <p class="text-gray-400 text-xs mt-1">三个数字空格分隔，支持负数坐标</p>
                 </div>
                 <div>
-                    <label class="block font-medium mb-1">备注 (可选)</label>
-                    <textarea id="noteInput" rows="2" placeholder="例如: 请把物资放在某个箱子、或者约时间交易..." class="w-full border rounded-lg px-3 py-2 outline-mainPurple"></textarea>
+                    <label class="block font-medium mb-1">备注（选填）</label>
+                    <textarea id="noteInput" rows="2" placeholder="放置箱子/家门口等说明" class="w-full border rounded-lg px-3 py-2 outline-mainPurple"></textarea>
                 </div>
-                <!-- 验证码随机计算题 -->
                 <div class="flex items-center gap-2">
                     <div class="flex-1">
-                        <label class="block font-medium mb-1">验证码 (计算结果)</label>
-                        <input id="verifyInput" type="text" placeholder="计算结果" class="w-full border rounded-lg px-3 py-2 outline-mainPurple">
+                        <label class="block font-medium mb-1">验证码（计算结果）</label>
+                        <input id="verifyInput" type="text" placeholder="输入答案" class="w-full border rounded-lg px-3 py-2 outline-mainPurple">
                     </div>
-                    <span id="verifyQuestion" class="bg-gray-200 px-4 py-3 rounded-lg mt-5 whitespace-nowrap">9 + 8 = ?</span>
+                    <span id="verifyQuestion" class="bg-gray-200 px-4 py-3 rounded-lg mt-5 whitespace-nowrap">5 + 7 = ?</span>
                 </div>
             </div>
 
-            <!-- 提交订单按钮 -->
-            <button onclick="submitOrder()" class="w-full py-4 bg-mainOrange text-white text-lg font-bold rounded-xl btn-press flex items-center justify-center gap-2">
+            <button onclick="submitNewOrder()" class="w-full py-4 bg-mainOrange text-white text-lg font-bold rounded-xl btn-press flex items-center justify-center gap-2">
                 <i class="fa fa-check"></i> 提交订单
             </button>
-            <!-- 返回首页按钮 -->
-            <button onclick="backHome()" class="w-full mt-3 py-2 border border-gray-300 rounded-lg text-gray-600 btn-press">返回商城首页</button>
+            <button onclick="backToShop()" class="w-full mt-3 py-2 border border-gray-300 rounded-lg text-gray-600 btn-press">返回商城首页</button>
         </div>
     </div>
 
     <script>
-        // ===================== 商品数据库（完全匹配截图商品） =====================
-        const goodsData = [
-            {id:1,name:"标准装备盒",price:0.3,img:"https://picsum.photos/seed/mcbox1/128/128",searchKey:"标准装备盒 装备"},
-            {id:2,name:"珍珠kit",price:0.3,img:"https://picsum.photos/seed/mcpearl/128/128",searchKey:"珍珠kit 末影珍珠"},
-            {id:3,name:"平滑石英",price:0.3,img:"https://picsum.photos/seed/mcquartzsmooth/128/128",searchKey:"平滑石英 石英"},
-            {id:4,name:"萤石",price:0.3,img:"https://picsum.photos/seed/mcglowstone/128/128",searchKey:"萤石 照明"},
-            {id:5,name:"玻璃",price:0.3,img:"https://picsum.photos/seed/mcglass/128/128",searchKey:"玻璃 建筑"},
-            {id:6,name:"鞘翅",price:0.3,img:"https://picsum.photos/seed/mcwing/128/128",searchKey:"鞘翅 飞行"},
-            {id:7,name:"烟花",price:0.3,img:"https://picsum.photos/seed/mcfirework/128/128",searchKey:"烟花"},
-            {id:8,name:"建筑",price:0.3,img:"https://picsum.photos/seed/mcbuildblock/128/128",searchKey:"建筑 方块"},
-            {id:9,name:"Maple补给|综合第五代",price:0.3,img:"https://picsum.photos/seed/mcmaple5/128/128",searchKey:"Maple 第五代 补给"},
-            {id:10,name:"装修盒",price:0.3,img:"https://picsum.photos/seed/mcdecorbox/128/128",searchKey:"装修盒 装饰"},
-            {id:11,name:"2.0Maple补给|综合第五代",price:0.3,img:"https://picsum.photos/seed/mcmaple20/128/128",searchKey:"Maple 2.0 补给"},
-            {id:12,name:"32k(收藏无法使用)",price:0.5,img:"https://picsum.photos/seed/mc32k/128/128",searchKey:"32k 收藏 武器"},
-            {id:13,name:"霜雪cpvp装备箱",price:0.3,img:"https://picsum.photos/seed/mccpvbox/128/128",searchKey:"霜雪 cpvp 装备箱"},
-            {id:14,name:"黑曜石",price:0.3,img:"https://picsum.photos/seed/mcobsidian/128/128",searchKey:"黑曜石 传送门"},
-            {id:15,name:"xp",price:0.3,img:"https://picsum.photos/seed/mcxp/128/128",searchKey:"xp 经验"},
-            {id:16,name:"附魔金苹果",price:0.3,img:"https://picsum.photos/seed/mcgoldapple/128/128",searchKey:"附魔金苹果 金苹果"},
-            {id:17,name:"石英块",price:0.3,img:"https://picsum.photos/seed/mcquartzblock/128/128",searchKey:"石英块"},
-            {id:18,name:"爆炸就是艺术",price:0.3,img:"https://picsum.photos/seed/mctntart/128/128",searchKey:"爆炸 TNT 艺术"},
-        ];
+        // 全局常量
+        const DELIVERY_PASSWORD = "1QAZ2WSX3EDC4RFV";
+        const SERVICE_QQ = "3258698798";
+        const GOODS_PRICE = 0.2; // 每件商品固定0.2元
+        let verifyA, verifyB, verifyAns;
 
-        // 配送员后台固定密码
-        const DELIVERY_PWD = "1QAZ2WSX3EDC4RFV";
-        // 客服QQ常量QQ
-        const serviceQQ = "3258698798";
-        // 购物车本地存储
-        let cartList = JSON.parse(localStorage.getItem("mcShopCart")) || [];
-        // 送货员订单存储
-        let deliveryOrderList = JSON.parse(localStorage.getItem("mcDeliveryOrder")) || [];
-        // 验证码计算题全局变量
-        let verifyNum1, verifyNum2, verifyAnswer;
+        // 本地存储数据管理
+        function getLocal(key) { return JSON.parse(localStorage.getItem(key)) || []; }
+        function setLocal(key, data) { localStorage.setItem(key, JSON.stringify(data)); }
 
-        // DOM元素缓存
+        // 数据池
+        let userList = getLocal("mcUserList"); // 注册账号
+        let loginUser = getLocal("mcLoginUser")[0] || null; // 当前登录用户
+        let goodsList = getLocal("mcGoodsList"); // 商品库（送货员可编辑）
+        let cartData = getLocal("mcCart"); // 用户购物车
+        let orderList = getLocal("mcDeliveryOrder"); // 配送订单
+
+        // DOM缓存
         const $ = s => document.querySelector(s);
         const goodsGrid = $("#goodsGrid");
         const cartBadgeNum = $("#cartBadgeNum");
         const cartEmptyTip = $("#cartEmptyTip");
-        const cartItemList = $("#cartItemList");
-        const cartBottomBox = $("#cartBottomBox");
-        const cartTotalMoney = $("#cartTotalMoney");
-        const checkoutPage = $("#pageCheckout");
-        const homePage = $("#pageHome");
-        const checkoutGoodsList = $("#checkoutGoodsList");
-        const checkoutSubTotal = $("#checkoutSubTotal");
-        const checkoutTotal = $("#checkoutTotal");
-        const minTipText = $("#minTipText");
-        const payCodeImg = $("#payCodeImg");
-        const verifyQuestion = $("#verifyQuestion");
+        const cartItemWrap = $("#cartItemWrap");
+        const cartBottomBar = $("#cartBottomBar");
+        const cartTotalPrice = $("#cartTotalPrice");
         const loginModal = $("#loginModal");
+        const registerModal = $("#registerModal");
+        const showUserName = $("#showUserName");
         const serviceModal = $("#serviceModal");
-        const qqText = $("#qqText");
-        const pageDelivery = $("#pageDelivery");
-        const deliveryOrderWrap = $("#deliveryOrderWrap");
-        const deliveryEmptyTip = $("#deliveryEmptyTip");
-        const deliveryPasswordModal = $("#deliveryPasswordModal");
+        const qqTextShow = $("#qqTextShow");
+        const deliveryPwdModal = $("#deliveryPwdModal");
         const deliveryPwdInput = $("#deliveryPwdInput");
+        const pageDeliveryAdmin = $("#pageDeliveryAdmin");
+        const adminGoodsList = $("#adminGoodsList");
+        const orderWrap = $("#orderWrap");
+        const emptyOrderTip = $("#emptyOrderTip");
+        const pageHome = $("#pageHome");
+        const pageCheckout = $("#pageCheckout");
+        const cartPanel = $("#cartPanel");
+        const verifyQuestion = $("#verifyQuestion");
+        const minOrderTip = $("#minOrderTip");
+        const checkoutGoodsWrap = $("#checkoutGoodsWrap");
+        const checkoutTotalNum = $("#checkoutTotalNum");
+        const checkoutPayNum = $("#checkoutPayNum");
+        const editGoodsName = $("#editGoodsName");
+        const editGoodsImg = $("#editGoodsImg");
+        const editGoodsId = $("#editGoodsId");
+        const buyerNameInput = $("#buyerNameInput");
+        const buyerQQInput = $("#buyerQQInput");
+        const posInput = $("#posInput");
+        const noteInput = $("#noteInput");
+        const verifyInput = $("#verifyInput");
+        const searchInput = $("#searchInput");
 
-        // ===================== 初始化页面 =====================
-        initPage();
-        function initPage() {
-            renderGoods(goodsData);
+        // 跨标签同步订单监听
+        window.addEventListener("storage", e => {
+            if (e.key === "mcDeliveryOrder") renderDeliveryOrderList();
+            if (e.key === "mcGoodsList") renderShopGoods();
+        });
+        // 5秒自动刷新订单兜底，解决多窗口不同步
+        setInterval(() => renderDeliveryOrderList(), 5000);
+
+        // 页面初始化
+        init();
+        function init() {
+            createVerifyCode();
+            checkLoginStatus();
+            renderShopGoods();
             refreshCartBadge();
-            createVerifyQuestion();
-            qqText.innerText = serviceQQ;
-            renderDeliveryOrder();
+            renderDeliveryOrderList();
+            qqTextShow.innerText = SERVICE_QQ;
+            // 初始化默认商品（无商品时自动生成）
+            if (goodsList.length === 0) {
+                goodsList = [
+                    { id: 1, name: "钻石块", img: "https://picsum.photos/id/1/128/128" },
+                    { id: 2, name: "铁块", img: "https://picsum.photos/id/2/128/128" },
+                    { id: 3, name: "金苹果", img: "https://picsum.photos/id/3/128/128" },
+                ];
+                setLocal("mcGoodsList", goodsList);
+                renderShopGoods();
+            }
         }
 
-        // 打开配送员密码弹窗
-        function openDeliveryPasswordModal() {
-            deliveryPasswordModal.classList.remove("hidden");
-            deliveryPwdInput.value = "";
-        }
-        // 关闭密码弹窗
-        function closeDeliveryPasswordModal() {
-            deliveryPasswordModal.classList.add("hidden");
-        }
-        // 校验配送员密码
-        window.checkDeliveryPassword = function() {
-            const inputPwd = deliveryPwdInput.value.trim();
-            if(inputPwd === DELIVERY_PWD) {
-                closeDeliveryPasswordModal();
-                openDeliveryPage();
+        // 登录检测
+        function checkLoginStatus() {
+            if (loginUser) {
+                showUserName.innerText = "欢迎，" + loginUser.username;
             } else {
-                alert("密码错误，无法进入配送员后台！");
+                openLoginModal();
+            }
+        }
+
+        // 登录弹窗控制
+        function openLoginModal() { loginModal.classList.remove("hidden"); registerModal.classList.add("hidden"); }
+        function closeLoginModal() { loginModal.classList.add("hidden"); }
+        function switchToRegister() { openRegisterModal(); }
+        function loginSubmit() {
+            const u = $("#loginUsername").value.trim();
+            const p = $("#loginPwd").value.trim();
+            const user = userList.find(item => item.username === u && item.password === p);
+            if (!u || !p) return alert("账号密码不能为空");
+            if (!user) return alert("账号或密码错误");
+            loginUser = { username: u };
+            setLocal("mcLoginUser", [loginUser]);
+            showUserName.innerText = "欢迎，" + u;
+            closeLoginModal();
+            $("#loginUsername").value = "";
+            $("#loginPwd").value = "";
+            alert("登录成功！");
+        }
+
+        // 注册弹窗控制
+        function openRegisterModal() { registerModal.classList.remove("hidden"); loginModal.classList.add("hidden"); }
+        function closeRegisterModal() { registerModal.classList.add("hidden"); }
+        function switchToLogin() { openLoginModal(); }
+        function registerSubmit() {
+            const u = $("#regUsername").value.trim();
+            const p = $("#regPwd").value.trim();
+            const p2 = $("#regPwd2").value.trim();
+            if (!u || !p) return alert("账号密码不能为空");
+            if (p !== p2) return alert("两次密码不一致");
+            if (p.length < 4) return alert("密码至少4位");
+            if (userList.find(item => item.username === u)) return alert("账号已被注册");
+            userList.push({ username: u, password: p });
+            setLocal("mcUserList", userList);
+            alert("注册成功，请登录");
+            switchToLogin();
+            $("#regUsername").value = "";
+            $("#regPwd").value = "";
+            $("#regPwd2").value = "";
+        }
+
+        // 退出登录
+        function logoutUser() {
+            localStorage.removeItem("mcLoginUser");
+            loginUser = null;
+            showUserName.innerText = "";
+            openLoginModal();
+        }
+
+        // 客服弹窗
+        function openServiceModal() { serviceModal.classList.remove("hidden"); }
+        function closeServiceModal() { serviceModal.classList.add("hidden"); }
+        function copyQQ() {
+            navigator.clipboard.writeText(SERVICE_QQ).then(() => alert("客服QQ复制成功！"));
+        }
+
+        // 送货员密码弹窗
+        function openDeliveryPwdModal() { deliveryPwdModal.classList.remove("hidden"); deliveryPwdInput.value = ""; }
+        function closeDeliveryPwdModal() { deliveryPwdModal.classList.add("hidden"); }
+        function checkDeliveryPassword() {
+            const input = deliveryPwdInput.value.trim();
+            if (input === DELIVERY_PASSWORD) {
+                closeDeliveryPwdModal();
+                openDeliveryAdminPage();
+            } else {
+                alert("密码错误，禁止进入后台");
                 deliveryPwdInput.value = "";
             }
         }
 
-        // 打开/关闭送货员页面
-        function openDeliveryPage() {
-            pageDelivery.classList.remove("hidden");
-            renderDeliveryOrder();
+        // 打开送货员后台
+        function openDeliveryAdminPage() {
+            pageDeliveryAdmin.classList.remove("hidden");
+            renderAdminGoodsList();
+            renderDeliveryOrderList();
         }
-        function closeDeliveryPage() {
-            pageDelivery.classList.add("hidden");
+        function closeDeliveryAdmin() { pageDeliveryAdmin.classList.add("hidden"); }
+
+        // 送货员：渲染可编辑商品列表
+        function renderAdminGoodsList() {
+            adminGoodsList.innerHTML = "";
+            goodsList = getLocal("mcGoodsList");
+            goodsList.forEach(item => {
+                const div = document.createElement("div");
+                div.className = "border rounded-lg p-2 relative";
+                div.innerHTML = `
+                    <img src="${item.img}" class="w-full h-20 object-contain mb-2">
+                    <p class="text-sm font-medium truncate">${item.name}</p>
+                    <div class="flex gap-1 mt-2">
+                        <button onclick="editGoods(${item.id})" class="flex-1 py-1 bg-mainOrange text-white text-sm rounded btn-press">编辑</button>
+                        <button onclick="delGoods(${item.id})" class="flex-1 py-1 bg-red-500 text-white text-sm rounded btn-press">删除</button>
+                    </div>
+                `;
+                adminGoodsList.appendChild(div);
+            })
+        }
+        // 新增商品
+        function addNewGoods() {
+            const name = editGoodsName.value.trim();
+            const img = editGoodsImg.value.trim();
+            if (!name || !img) return alert("请填写商品名称和图片链接");
+            const newId = goodsList.length > 0 ? Math.max(...goodsList.map(i => i.id)) + 1 : 1;
+            goodsList.push({ id: newId, name, img });
+            setLocal("mcGoodsList", goodsList);
+            renderAdminGoodsList();
+            renderShopGoods();
+            editGoodsName.value = "";
+            editGoodsImg.value = "";
+        }
+        // 编辑商品回填
+        window.editGoods = function(id) {
+            const item = goodsList.find(g => g.id === id);
+            editGoodsId.value = id;
+            editGoodsName.value = item.name;
+            editGoodsImg.value = item.img;
+        }
+        // 保存修改商品
+        function saveEditGoods() {
+            const id = Number(editGoodsId.value);
+            const name = editGoodsName.value.trim();
+            const img = editGoodsImg.value.trim();
+            if (!id || !name || !img) return alert("请完整填写信息");
+            const idx = goodsList.findIndex(g => g.id === id);
+            goodsList[idx] = { id, name, img };
+            setLocal("mcGoodsList", goodsList);
+            renderAdminGoodsList();
+            renderShopGoods();
+            editGoodsName.value = "";
+            editGoodsImg.value = "";
+            editGoodsId.value = "";
+            alert("商品修改保存成功");
+        }
+        // 删除商品
+        window.delGoods = function(id) {
+            if (!confirm("确定删除该商品？")) return;
+            goodsList = goodsList.filter(g => g.id !== id);
+            setLocal("mcGoodsList", goodsList);
+            renderAdminGoodsList();
+            renderShopGoods();
         }
 
-        // 渲染送货员订单列表
-        function renderDeliveryOrder() {
-            deliveryOrderWrap.innerHTML = "";
-            if(deliveryOrderList.length === 0) {
-                deliveryEmptyTip.classList.remove("hidden");
+        // 送货员：渲染订单列表（客户姓名、坐标、商品、金额、完成按钮）
+        function renderDeliveryOrderList() {
+            orderWrap.innerHTML = "";
+            orderList = getLocal("mcDeliveryOrder");
+            if (orderList.length === 0) {
+                emptyOrderTip.classList.remove("hidden");
                 return;
             }
-            deliveryEmptyTip.classList.add("hidden");
-            deliveryOrderList.forEach((order, index) => {
+            emptyOrderTip.classList.add("hidden");
+            orderList.forEach((order, index) => {
                 let goodsText = "";
-                order.goods.forEach(item => {
-                    goodsText += `${item.name} ×${item.count}  ¥${(item.price*item.count).toFixed(2)}\n`;
+                order.goods.forEach(g => {
+                    goodsText += `${g.name} ×${g.count}  ¥${(GOODS_PRICE * g.count).toFixed(2)}\n`;
                 })
-                const orderCard = document.createElement("div");
-                orderCard.className = "bg-white rounded-xl p-5 shadow border-l-4 border-mainPurple";
-                orderCard.innerHTML = `
-                    <div class="grid md:grid-cols-2 gap-4 mb-4">
+                const div = document.createElement("div");
+                div.className = "bg-gray-50 rounded-xl p-5 border-l-4 border-mainPurple shadow";
+                div.innerHTML = `
+                    <div class="grid md:grid-cols-2 gap-3 mb-3">
                         <div>
-                            <p class="text-gray-500 text-sm">收货人游戏ID</p>
-                            <p class="font-bold text-lg">${order.gameId}</p>
+                            <p class="text-sm text-gray-500">收货人游戏ID（客户姓名）</p>
+                            <p class="font-bold text-lg">${order.buyerName}</p>
                         </div>
                         <div>
-                            <p class="text-gray-500 text-sm">客户QQ</p>
-                            <p class="font-bold">${order.qq}</p>
+                            <p class="text-sm text-gray-500">联系QQ</p>
+                            <p class="font-bold">${order.buyerQQ}</p>
                         </div>
                         <div>
-                            <p class="text-gray-500 text-sm">游戏坐标 x y z</p>
+                            <p class="text-sm text-gray-500">送货坐标 XYZ</p>
                             <p class="font-bold text-red-600">${order.pos}</p>
                         </div>
                         <div>
-                            <p class="text-gray-500 text-sm">订单总金额</p>
-                            <p class="font-bold text-xl text-mainOrange">¥${order.total}</p>
+                            <p class="text-sm text-gray-500">订单总金额</p>
+                            <p class="font-bold text-xl text-mainOrange">¥${order.totalMoney}</p>
                         </div>
                     </div>
                     <div class="mb-4">
-                        <p class="text-gray-500 text-sm mb-1">购买商品明细</p>
-                        <textarea readonly class="w-full p-2 bg-gray-100 rounded h-28 text-sm">${goodsText}</textarea>
+                        <p class="text-sm text-gray-500 mb-1">购买商品明细</p>
+                        <textarea readonly class="w-full p-2 bg-white rounded h-24 text-sm">${goodsText}</textarea>
                     </div>
                     <div class="flex justify-end">
-                        <button onclick="finishOrder(${index})" class="px-5 py-2 bg-green-500 text-white rounded-lg btn-press">完成配送</button>
+                        <button onclick="finishDelivery(${index})" class="px-5 py-2 bg-green-500 text-white rounded-lg btn-press">配送完成</button>
                     </div>
                 `;
-                deliveryOrderWrap.appendChild(orderCard);
+                orderWrap.appendChild(div);
             })
         }
-
-        // 完成订单，移除订单
-        window.finishOrder = function(idx) {
-            deliveryOrderList.splice(idx, 1);
-            localStorage.setItem("mcDeliveryOrder", JSON.stringify(deliveryOrderList));
-            renderDeliveryOrder();
-            alert("已标记该订单配送完成！");
+        // 完成配送，移除订单
+        window.finishDelivery = function(idx) {
+            orderList.splice(idx, 1);
+            setLocal("mcDeliveryOrder", orderList);
+            renderDeliveryOrderList();
+            alert("已标记订单配送完成！");
         }
 
-        // 打开/关闭客服弹窗
-        function openServiceModal() {
-            serviceModal.classList.remove("hidden");
-        }
-        function closeServiceModal() {
-            serviceModal.classList.add("hidden");
-        }
-        // 复制客服QQ
-        function copyQQ() {
-            navigator.clipboard.writeText(serviceQQ).then(()=>{
-                alert("客服QQ已复制到剪贴板！");
-            }).catch(()=>{
-                alert("复制失败，请手动复制："+serviceQQ);
-            })
-        }
-
-        // 生成验证码数学题
-        function createVerifyQuestion() {
-            verifyNum1 = Math.floor(Math.random() * 10) + 1;
-            verifyNum2 = Math.floor(Math.random() * 10) + 1;
-            verifyAnswer = verifyNum1 + verifyNum2;
-            verifyQuestion.innerText = `${verifyNum1} + ${verifyNum2} = ?`;
-            $("#verifyInput").value = "";
-        }
-
-        // 渲染商品网格
-        function renderGoods(list) {
+        // 商城首页渲染商品
+        function renderShopGoods() {
             goodsGrid.innerHTML = "";
-            if(list.length === 0) {
-                goodsGrid.innerHTML = `<div class="col-span-full text-center text-gray-400 py-20">未搜索到对应商品</div>`;
+            goodsList = getLocal("mcGoodsList");
+            const key = searchInput.value.trim().toLowerCase();
+            let filterGoods = goodsList;
+            if (key) filterGoods = goodsList.filter(g => g.name.toLowerCase().includes(key));
+            if (filterGoods.length === 0) {
+                goodsGrid.innerHTML = `<div class="col-span-full text-center text-gray-400 py-20">暂无匹配商品</div>`;
                 return;
             }
-            list.forEach(good => {
+            filterGoods.forEach(item => {
                 const card = document.createElement("div");
-                card.className = "bg-white rounded-lg shadow overflow-hidden goods-card";
+                card.className = "bg-white rounded-lg shadow overflow-hidden";
                 card.innerHTML = `
-                    <img src="${good.img}" alt="${good.name}" class="w-full h-32 mc-item-img bg-gray-100">
+                    <img src="${item.img}" class="w-full h-32 mc-item-img bg-gray-100">
                     <div class="p-3">
-                        <h3 class="text-sm font-medium truncate">${good.name}</h3>
-                        <p class="text-red-500 font-bold my-2">¥${good.price.toFixed(2)}/件</p>
-                        <button onclick="addCart(${good.id})" class="w-full py-1.5 bg-mainPurple text-white rounded-lg btn-press text-sm flex items-center justify-center gap-1">
+                        <h3 class="text-sm font-medium truncate">${item.name}</h3>
+                        <p class="text-red-500 font-bold my-2">¥${GOODS_PRICE.toFixed(2)}/件</p>
+                        <button onclick="addCartItem(${item.id})" class="w-full py-1.5 bg-mainPurple text-white rounded-lg btn-press text-sm flex items-center justify-center gap-1">
                             <i class="fa fa-plus"></i> 加入购物车
                         </button>
                     </div>
@@ -469,196 +587,153 @@
                 goodsGrid.appendChild(card);
             })
         }
-
         // 商品搜索
-        function searchGoods() {
-            const key = $("#searchInput").value.trim().toLowerCase();
-            if(!key) return renderGoods(goodsData);
-            const filter = goodsData.filter(item => item.searchKey.toLowerCase().includes(key));
-            renderGoods(filter);
-        }
+        function searchGoods() { renderShopGoods(); }
 
+        // 购物车操作
+        function refreshCartBadge() {
+            cartData = getLocal("mcCart");
+            const totalNum = cartData.reduce((s, i) => s + i.count, 0);
+            cartBadgeNum.innerText = totalNum;
+        }
         // 添加商品进购物车
-        window.addCart = function(goodId) {
-            const target = goodsData.find(g => g.id === goodId);
-            const exist = cartList.find(c => c.id === goodId);
-            if(exist) exist.count += 1;
-            else cartList.push({...target, count:1});
-            saveCart();
-            alert(`已添加【${target.name}】到购物车`);
-        }
-
-        // 修改购物车数量
-        window.changeCartNum = function(idx, delta) {
-            cartList[idx].count += delta;
-            if(cartList[idx].count <= 0) cartList.splice(idx, 1);
-            saveCart();
-        }
-
-        // 保存购物车到本地存储
-        function saveCart() {
-            localStorage.setItem("mcShopCart", JSON.stringify(cartList));
+        window.addCartItem = function(id) {
+            const item = goodsList.find(g => g.id === id);
+            const exist = cartData.find(c => c.id === id);
+            if (exist) exist.count += 1;
+            else cartData.push({ id, name: item.name, img: item.img, count: 1 });
+            setLocal("mcCart", cartData);
             refreshCartBadge();
+            alert(`已添加【${item.name}】到购物车`);
+        }
+        // 打开购物车侧边栏
+        function openCartPanel() {
+            cartPanel.classList.remove("hidden");
             renderCartPanel();
         }
-
-        // 更新购物车角标总数
-        function refreshCartBadge() {
-            const total = cartList.reduce((sum,item) => sum + item.count, 0);
-            cartBadgeNum.innerText = total;
-        }
-
-        // 渲染侧边购物车面板
+        function closeCartPanel() { cartPanel.classList.add("hidden"); }
+        // 渲染购物车
         function renderCartPanel() {
-            if(cartList.length === 0) {
+            cartData = getLocal("mcCart");
+            if (cartData.length === 0) {
                 cartEmptyTip.classList.remove("hidden");
-                cartItemList.classList.add("hidden");
-                cartBottomBox.classList.add("hidden");
+                cartItemWrap.classList.add("hidden");
+                cartBottomBar.classList.add("hidden");
                 return;
             }
             cartEmptyTip.classList.add("hidden");
-            cartItemList.classList.remove("hidden");
-            cartBottomBox.classList.remove("hidden");
-            cartItemList.innerHTML = "";
-            let totalMoney = 0;
-            cartList.forEach((item, idx) => {
-                totalMoney += item.price * item.count;
-                const itemDom = document.createElement("div");
-                itemDom.className = "flex items-center gap-3 border rounded p-2";
-                itemDom.innerHTML = `
+            cartItemWrap.classList.remove("hidden");
+            cartBottomBar.classList.remove("hidden");
+            cartItemWrap.innerHTML = "";
+            let total = 0;
+            cartData.forEach((item, idx) => {
+                const singlePrice = (GOODS_PRICE * item.count).toFixed(2);
+                total += GOODS_PRICE * item.count;
+                const div = document.createElement("div");
+                div.className = "flex items-center gap-3 border rounded p-2";
+                div.innerHTML = `
                     <img src="${item.img}" class="w-10 h-10 mc-item-img rounded bg-gray-100">
                     <div class="flex-1">
                         <p class="text-sm font-medium truncate">${item.name}</p>
-                        <p class="text-red-500 text-sm">¥${item.price} × ${item.count}</p>
+                        <p class="text-red-500 text-sm">¥${GOODS_PRICE} ×${item.count} = ¥${singlePrice}</p>
                     </div>
                     <div class="flex gap-1">
-                        <button onclick="changeCartNum(${idx}, -1)" class="w-7 h-7 border rounded btn-press">-</button>
-                        <button onclick="changeCartNum(${idx}, 1)" class="w-7 h-7 border rounded btn-press">+</button>
+                        <button onclick="cartMinus(${idx})" class="w-7 h-7 border rounded btn-press">-</button>
+                        <button onclick="cartPlus(${idx})" class="w-7 h-7 border rounded btn-press">+</button>
                     </div>
                 `;
-                cartItemList.appendChild(itemDom);
+                cartItemWrap.appendChild(div);
             })
-            cartTotalMoney.innerText = totalMoney.toFixed(2);
+            cartTotalPrice.innerText = total.toFixed(2);
         }
-
-        // 打开/关闭购物车弹窗
-        function openCartPanel() {
-            $("#cartModal").classList.remove("hidden");
-            renderCartPanel();
+        // 购物车增减数量
+        window.cartPlus = function(idx) {
+            cartData[idx].count += 1; setLocal("mcCart", cartData); renderCartPanel(); refreshCartBadge();
         }
-        function closeCartPanel() {
-            $("#cartModal").classList.add("hidden");
+        window.cartMinus = function(idx) {
+            cartData[idx].count -= 1;
+            if (cartData[idx].count <= 0) cartData.splice(idx, 1);
+            setLocal("mcCart", cartData); renderCartPanel(); refreshCartBadge();
         }
-
-        // 清空全部购物车
+        // 清空购物车
         function clearAllCart() {
-            if(confirm("确认清空所有购物车商品？")) {
-                cartList = [];
-                saveCart();
-            }
+            if (!confirm("确认清空全部商品？")) return;
+            cartData = []; setLocal("mcCart", cartData); renderCartPanel(); refreshCartBadge();
         }
-
-        // 跳转结算页面
-        function goCheckout() {
+        // 跳转结算页
+        function goCheckoutPage() {
             closeCartPanel();
             renderCheckoutPage();
-            checkoutPage.classList.remove("hidden");
-            homePage.classList.add("hidden");
+            pageCheckout.classList.remove("hidden");
+            pageHome.classList.add("hidden");
+        }
+        // 返回商城
+        function backToShop() {
+            pageCheckout.classList.add("hidden");
+            pageHome.classList.remove("hidden");
+        }
+        function switchPageHome() {
+            pageCheckout.classList.add("hidden");
+            pageDeliveryAdmin.classList.add("hidden");
+            pageHome.classList.remove("hidden");
         }
 
-        // 返回首页
-        function backHome() {
-            checkoutPage.classList.add("hidden");
-            homePage.classList.remove("hidden");
-        }
-
-        // 渲染结算页面订单商品与金额
+        // 结算页面渲染
         function renderCheckoutPage() {
-            checkoutGoodsList.innerHTML = "";
-            let subTotal = 0;
-            cartList.forEach(item => {
-                const single = item.price * item.count;
-                subTotal += single;
-                const itemDom = document.createElement("div");
-                itemDom.className = "flex justify-between border-b pb-2";
-                itemDom.innerHTML = `
-                    <span>${item.name} ×${item.count}</span>
-                    <span>¥${single.toFixed(2)}</span>
-                `;
-                checkoutGoodsList.appendChild(itemDom);
+            cartData = getLocal("mcCart");
+            checkoutGoodsWrap.innerHTML = "";
+            let total = 0;
+            cartData.forEach(item => {
+                const sub = GOODS_PRICE * item.count;
+                total += sub;
+                const div = document.createElement("div");
+                div.className = "flex justify-between border-b pb-2";
+                div.innerHTML = `<span>${item.name} ×${item.count}</span><span>¥${sub.toFixed(2)}</span>`;
+                checkoutGoodsWrap.appendChild(div);
             })
-            checkoutSubTotal.innerText = subTotal.toFixed(2);
-            checkoutTotal.innerText = subTotal.toFixed(2);
-            // 判断是否不足1元
-            if(subTotal < 1) minTipText.classList.remove("hidden");
-            else minTipText.classList.add("hidden");
+            checkoutTotalNum.innerText = total.toFixed(2);
+            checkoutPayNum.innerText = total.toFixed(2);
+            if (total < 1) minOrderTip.classList.remove("hidden");
+            else minOrderTip.classList.add("hidden");
+            createVerifyCode();
         }
-
-        // 提交订单校验逻辑（新增存入送货员订单列表）
-        function submitOrder() {
-            const gameId = $("#gameIdInput").value.trim();
-            const qq = $("#qqInput").value.trim();
-            const pos = $("#posInput").value.trim();
-            const verifyVal = $("#verifyInput").value.trim();
-            const total = Number(checkoutTotal.innerText);
-
-            // 校验1：金额最低1元111111111
-            if(total < 1) return alert("订单金额不足1元，无法提交！请继续添加商品");
-            // 校验2：游戏ID
-            if(!gameId) return alert("请填写游戏ID");
-            // 校验3：QQ号
-            if(!qq) return alert("请填写QQ号");
-            // 校验4：坐标格式
-            const posArr = pos.split(" ").filter(x=>x);
-            if(posArr.length !== 3 || isNaN(posArr[0]) || isNaN(posArr[1]) || isNaN(posArr[2])) {
-                return alert("游戏坐标格式错误！请输入3个数字，空格分隔");
-            }
-            // 校验5：验证码计算结果
-            if(Number(verifyVal) !== verifyAnswer) {
-                createVerifyQuestion();
-                return alert("验证码答案错误，请重新计算填写");
-            }
-
-            // 组装订单数据存入送货员后台
+        // 生成验证码
+        function createVerifyCode() {
+            verifyA = Math.floor(Math.random() * 10);
+            verifyB = Math.floor(Math.random() * 10);
+            verifyAns = verifyA + verifyB;
+            verifyQuestion.innerText = `${verifyA} + ${verifyB} = ?`;
+            verifyInput.value = "";
+        }
+        // 提交订单存入送货员后台
+        function submitNewOrder() {
+            cartData = getLocal("mcCart");
+            const total = cartData.reduce((s, i) => s + GOODS_PRICE * i.count, 0);
+            if (total < 1) return alert("订单金额不足1元，无法下单");
+            const name = buyerNameInput.value.trim();
+            const qq = buyerQQInput.value.trim();
+            const pos = posInput.value.trim();
+            const code = Number(verifyInput.value.trim());
+            if (!name || !qq || !pos) return alert("请填写完整收货信息");
+            const posArr = pos.split(" ").filter(x => x);
+            if (posArr.length !== 3 || isNaN(posArr[0]) || isNaN(posArr[1]) || isNaN(posArr[2])) return alert("坐标格式错误，需3个数字空格分隔");
+            if (code !== verifyAns) { createVerifyCode(); return alert("验证码答案错误"); }
+            // 组装订单
             const newOrder = {
-                gameId: gameId,
-                qq: qq,
+                buyerName: name,
+                buyerQQ: qq,
                 pos: pos,
-                total: total.toFixed(2),
-                goods: JSON.parse(JSON.stringify(cartList))
+                totalMoney: total.toFixed(2),
+                goods: JSON.parse(JSON.stringify(cartData))
             };
-            deliveryOrderList.push(newOrder);
-            localStorage.setItem("mcDeliveryOrder", JSON.stringify(deliveryOrderList));
-
-            // 订单提交成功弹窗
-            let orderText = "===== 订单提交成功 =====\n";
-            orderText += `游戏ID: ${gameId}\nQQ: ${qq}\n坐标: ${pos}\n客服QQ：${serviceQQ}\n`;
-            orderText += "商品清单:\n";
-            cartList.forEach(item=>{
-                orderText += `· ${item.name} ×${item.count}  ¥${(item.price*item.count).toFixed(2)}\n`;
-            })
-            orderText += `应付总额: ¥${total.toFixed(2)}\n请完成付款`;
-            alert(orderText);
-
-            // 提交后清空购物车、刷新验证码、返回首页、刷新送货员列表
-            cartList = [];
-            saveCart();
-            createVerifyQuestion();
-            backHome();
-            renderDeliveryOrder();
-        }
-
-        // 底部tab切换（仅首页）
-        function switchTab(tab) {
-            if(tab === "order") alert("订单查询功能开发中");
-        }
-
-        // 退出登录提示
-        function logoutTip() {
-            loginModal.classList.remove("hidden");
-        }
-        function closeLogin() {
-            loginModal.classList.add("hidden");
+            orderList.push(newOrder);
+            setLocal("mcDeliveryOrder", orderList);
+            alert("订单提交成功！配送员将尽快上门");
+            // 清空购物车
+            cartData = []; setLocal("mcCart", cartData);
+            refreshCartBadge();
+            // 返回商城
+            backToShop();
         }
     </script>
 </body>
