@@ -3,8 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MC装备线上点单商城｜可交互版</title>
-    <!-- 在线CSS无需本地文件 -->
+    <title>七喵小卖部 - MC物资点单商城</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css">
     <script>
@@ -12,307 +11,500 @@
             theme: {
                 extend: {
                     colors: {
-                        mcPurple: '#9146ff',
-                        mcDark: '#1e1530',
-                        mcLight: '#f3efff'
+                        mainPurple: '#9370E8',
+                        mainOrange: '#FF8A18',
+                        lightBg: '#F5F3FF',
+                        cardPurple: '#EAE5FF'
                     }
                 }
             }
         }
     </script>
     <style>
-        /* 像素风图片渲染，MC装备清晰 */
-        .pixel-item {
+        /* MC像素图片清晰渲染 */
+        .mc-item-img {
             image-rendering: pixelated;
             image-rendering: crisp-edges;
         }
-        /* 自定义滚动条交互美化 */
+        /* 滚动条美化 */
         ::-webkit-scrollbar {
-            width: 5px;
-            height: 5px;
+            width: 6px;
+            height: 6px;
         }
         ::-webkit-scrollbar-thumb {
-            background: #9146ff;
-            border-radius: 3px;
+            background: #9370E8;
+            border-radius: 4px;
         }
-        ::-webkit-scrollbar-track {
-            background: #eee;
+        /* 按钮按压动效 */
+        .btn-press:active {
+            transform: scale(0.97);
+            opacity: 0.9;
         }
-        /* 点击按压动效 */
-        .btn-active:active {
-            transform: scale(0.96);
-            opacity: 0.85;
+        /* 弹窗遮罩动画 */
+        .modal-enter {
+            animation: fadeIn 0.2s ease;
         }
-        /* 卡片悬浮交互 */
-        .goods-card {
-            transition: all 0.2s ease;
-        }
-        .goods-card:hover {
-            transform: translateY(-4px);
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
         }
     </style>
 </head>
-<body class="bg-mcLight min-h-screen">
-    <!-- 顶部导航栏 -->
-    <header class="bg-mcDark text-white sticky top-0 z-50 shadow-md">
-        <div class="container mx-auto px-4 py-4 flex justify-between items-center">
-            <h1 class="text-xl md:text-2xl font-bold">⚔️ MC装备商城</h1>
-            <!-- 购物车交互按钮 -->
-            <button id="cartToggleBtn" class="relative text-2xl hover:text-mcPurple transition btn-active">
-                <i class="fa fa-shopping-cart"></i>
-                <span id="cartCountBadge" class="absolute -top-2 -right-2 bg-mcPurple text-white text-xs w-5 h-5 rounded-full flex items-center justify-center">0</span>
+<body class="bg-lightBg min-h-screen font-sans">
+    <!-- 首页主界面 -->
+    <div id="pageHome">
+        <!-- 顶部导航栏 -->
+        <header class="bg-mainPurple px-4 py-3 flex items-center justify-between shadow-md sticky top-0 z-40">
+            <h1 class="text-white text-xl font-bold flex items-center gap-2">
+                <i class="fa fa-shopping-bag"></i> 七喵小卖部
+            </h1>
+            <!-- 搜索框 -->
+            <div class="flex flex-1 mx-4 max-w-lg">
+                <input id="searchInput" type="text" placeholder="搜索商品..." class="w-full px-3 py-1.5 rounded-l-md outline-none text-sm">
+                <button onclick="searchGoods()" class="bg-indigo-700 text-white px-4 py-1.5 rounded-r-md btn-press text-sm">搜索</button>
+            </div>
+            <div class="flex items-center gap-4">
+                <span class="text-white text-sm hidden md:block">112E1R32</span>
+                <button class="text-white btn-press"><i class="fa fa-comment-o text-lg"></i></button>
+                <button onclick="logoutTip()" class="text-white btn-press"><i class="fa fa-sign-out"></i> 退出</button>
+            </div>
+        </header>
+
+        <!-- 商品网格区域 -->
+        <main class="container mx-auto px-3 py-6 pb-24">
+            <div id="goodsGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+                <!-- JS渲染商品卡片 -->
+            </div>
+        </main>
+
+        <!-- 底部导航栏 -->
+        <div class="fixed bottom-0 left-0 w-full bg-white shadow-inner flex justify-center gap-6 py-3 z-30">
+            <button onclick="switchTab('order')" class="flex items-center gap-1 text-gray-600 btn-press">
+                <i class="fa fa-search"></i> 订单查询
+            </button>
+            <button onclick="switchTab('home')" class="flex items-center gap-1 text-mainPurple font-medium btn-press">
+                <i class="fa fa-home"></i> 首页
             </button>
         </div>
-    </header>
 
-    <main class="container mx-auto px-3 py-6">
-        <!-- 分类切换交互栏（可横向滑动） -->
-        <div class="flex gap-2 overflow-x-auto pb-3 mb-6" style="scrollbar-height:4px;">
-            <button data-type="all" class="category-btn btn-active bg-mcPurple text-white px-4 py-2 rounded-full whitespace-nowrap">全部商品</button>
-            <button data-type="armor" class="category-btn btn-active bg-gray-200 px-4 py-2 rounded-full whitespace-nowrap hover:bg-mcPurple hover:text-white transition">附魔护甲</button>
-            <button data-type="weapon" class="category-btn btn-active bg-gray-200 px-4 py-2 rounded-full whitespace-nowrap hover:bg-mcPurple hover:text-white transition">近战武器</button>
-            <button data-type="tool" class="category-btn btn-active bg-gray-200 px-4 py-2 rounded-full whitespace-nowrap hover:bg-mcPurple hover:text-white transition">采集工具</button>
-            <button data-type="potion" class="category-btn btn-active bg-gray-200 px-4 py-2 rounded-full whitespace-nowrap hover:bg-mcPurple hover:text-white transition">药水道具</button>
-            <button data-type="block" class="category-btn btn-active bg-gray-200 px-4 py-2 rounded-full whitespace-nowrap hover:bg-mcPurple hover:text-white transition">建筑方块</button>
-            <button data-type="remote" class="category-btn btn-active bg-gray-200 px-4 py-2 rounded-full whitespace-nowrap hover:bg-mcPurple hover:text-white transition">远程装备</button>
-            <button data-type="doll" class="category-btn btn-active bg-gray-200 px-4 py-2 rounded-full whitespace-nowrap hover:bg-mcPurple hover:text-white transition">玩家人偶</button>
-        </div>
+        <!-- 购物车悬浮按钮 -->
+        <button onclick="openCartPanel()" class="fixed bottom-16 right-4 w-14 h-14 rounded-full bg-mainPurple text-white shadow-lg flex items-center justify-center text-xl btn-press z-40">
+            <i class="fa fa-shopping-cart"></i>
+            <span id="cartBadgeNum" class="absolute -top-1 -right-1 bg-red-500 w-5 h-5 rounded-full text-xs flex items-center justify-center">0</span>
+        </button>
 
-        <!-- 商品渲染容器 -->
-        <div id="goodsContainer" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
-        </div>
-        <!-- 无商品提示 -->
-        <div id="emptyTip" class="hidden text-center text-gray-400 py-20 text-lg">
-            <i class="fa fa-box-open text-4xl block mb-3"></i>
-            当前分类暂无商品
-        </div>
-    </main>
+        <!-- 左侧悬浮客服按钮 -->
+        <button class="fixed bottom-16 left-4 w-12 h-12 rounded-full bg-green-500 text-white shadow-lg flex items-center justify-center text-lg btn-press z-40">
+            <i class="fa fa-comments"></i>
+        </button>
+    </div>
 
-    <!-- 购物车侧边弹窗（遮罩点击关闭交互） -->
-    <div id="cartMask" class="fixed inset-0 bg-black/65 z-[999] hidden">
-        <div class="absolute right-0 top-0 w-full sm:w-[440px] h-full bg-white shadow-2xl flex flex-col">
-            <!-- 购物车头部 -->
-            <div class="p-4 border-b flex justify-between items-center">
-                <h2 class="text-xl font-bold text-mcDark">🛒 我的购物车</h2>
-                <button id="cartCloseBtn" class="text-gray-500 text-xl hover:text-red-500 btn-active">✕</button>
+    <!-- 登录弹窗（未登录显示） -->
+    <div id="loginModal" class="fixed inset-0 bg-black/60 z-[999] hidden modal-enter flex items-center justify-center">
+        <div class="bg-white rounded-xl p-6 w-[90%] max-w-sm">
+            <h2 class="text-xl font-bold mb-4 text-center">七喵小卖部</h2>
+            <p class="text-gray-500 mb-4 text-center">请登录后选购商品</p>
+            <button onclick="closeLogin()" class="w-full py-2 bg-mainPurple text-white rounded-lg btn-press">登录</button>
+        </div>
+    </div>
+
+    <!-- 购物车侧边弹窗 -->
+    <div id="cartModal" class="fixed inset-0 bg-black/60 z-[998] hidden modal-enter">
+        <div class="absolute right-0 top-0 h-full w-full sm:w-[420px] bg-white shadow-2xl flex flex-col">
+            <div class="p-4 bg-mainPurple text-white flex justify-between items-center">
+                <h2 class="text-lg font-bold">我的购物车</h2>
+                <button onclick="closeCartPanel()" class="text-white text-xl btn-press">✕</button>
             </div>
-            <!-- 购物车滚动列表 -->
+            <!-- 购物车商品列表 -->
             <div class="flex-1 overflow-y-auto p-4">
-                <div id="cartEmptyText" class="h-full flex flex-col items-center justify-center text-gray-400">
-                    <i class="fa fa-shopping-cart text-5xl mb-4"></i>
-                    <p>购物车空空如也，快去挑选装备吧</p>
+                <div id="cartEmptyTip" class="h-full flex flex-col items-center justify-center text-gray-400">
+                    <i class="fa fa-shopping-cart text-5xl mb-3"></i>
+                    <p>购物车暂无商品</p>
                 </div>
-                <div id="cartItemList" class="hidden space-y-4"></div>
+                <div id="cartItemList" class="hidden space-y-3"></div>
             </div>
-            <!-- 底部结算栏 -->
-            <div id="cartBottomWrap" class="hidden border-t p-4">
-                <div class="flex justify-between text-lg font-bold mb-4">
-                    <span>合计总价：</span>
-                    <span class="text-mcPurple text-xl">¥<span id="totalPriceNum">0.00</span></span>
+            <!-- 购物车底部操作 -->
+            <div id="cartBottomBox" class="hidden border-t p-4">
+                <div class="flex justify-between items-center mb-4">
+                    <span class="font-bold text-lg">合计: <span class="text-red-500 text-xl">¥<span id="cartTotalMoney">0.00</span></span></span>
                 </div>
                 <div class="grid grid-cols-2 gap-3">
-                    <button id="clearAllCart" class="py-2 border border-gray-300 rounded-lg btn-active hover:bg-gray-100">清空购物车</button>
-                    <button id="submitOrderBtn" class="py-2 bg-mcPurple text-white rounded-lg btn-active hover:opacity-90">提交订单</button>
+                    <button onclick="clearAllCart()" class="py-2 bg-red-100 text-red-500 rounded-lg btn-press">清空购物车</button>
+                    <button onclick="goCheckout()" class="py-2 bg-mainPurple text-white rounded-lg btn-press">去结算 →</button>
                 </div>
             </div>
         </div>
     </div>
 
+    <!-- 结算确认订单页面 -->
+    <div id="pageCheckout" class="fixed inset-0 bg-gray-100 overflow-auto z-[997] hidden p-4 md:p-8">
+        <div class="max-w-2xl mx-auto bg-white rounded-xl p-6 shadow-lg">
+            <h2 class="text-xl font-bold border-l-4 border-mainOrange pl-3 mb-6">确认订单 & 付款</h2>
+
+            <!-- 购物车商品列表 -->
+            <div class="mb-6">
+                <div class="flex justify-between items-center mb-3">
+                    <h3 class="font-medium flex items-center gap-1"><i class="fa fa-shopping-cart"></i> 购物车商品</h3>
+                    <button onclick="clearAllCart()" class="bg-red-500 text-white px-3 py-1 rounded text-sm btn-press">清空购物车</button>
+                </div>
+                <div id="checkoutGoodsList" class="space-y-2 mb-4"></div>
+                <!-- 金额汇总 -->
+                <div class="space-y-2 text-right">
+                    <div class="flex justify-between">
+                        <span>商品总额:</span>
+                        <span>¥<span id="checkoutSubTotal">0.00</span></span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span>配送费:</span>
+                        <span>¥0.00</span>
+                    </div>
+                    <div class="flex justify-between text-xl font-bold text-red-500 pt-2 border-t">
+                        <span>应付总额:</span>
+                        <span>¥<span id="checkoutTotal">0.00</span></span>
+                    </div>
+                </div>
+                <p id="minTipText" class="text-orange-500 text-sm mt-2 hidden"><i class="fa fa-exclamation-triangle"></i> 订单金额不足1元，请继续添加商品</p>
+            </div>
+
+            <!-- 收款码切换区域 -->
+            <div class="bg-amber-50 rounded-xl p-4 mb-6">
+                <div class="flex gap-2 mb-4 justify-center">
+                    <button onclick="switchPayCode('shop')" id="btnShopPay" class="px-6 py-2 rounded-full bg-mainOrange text-white font-medium btn-press">店长</button>
+                    <button onclick="switchPayCode('su')" id="btnSuPay" class="px-6 py-2 rounded-full bg-gray-200 text-gray-600 btn-press">激素</button>
+                </div>
+                <!-- 收款码容器 -->
+                <div class="flex justify-center">
+                    <div class="border-2 border-mainOrange rounded-xl p-3 bg-black max-w-xs">
+                        <img id="payCodeImg" src="https://p3-flow-imagex-sign.byteimg.com/tos-cn-i-a9rns2rl98/34111341343b403893d3d099129d3151~tplv-a9rns2rl98-image.image" alt="店长赞赏码" class="w-full mc-item-img">
+                        <p class="text-white text-center mt-3 text-lg">“给点吧穷苦了”</p>
+                        <div class="bg-amber-500 rounded-b-lg py-2 mt-2">
+                            <p class="text-white text-center font-bold">Galaxy16 的赞赏码</p>
+                        </div>
+                    </div>
+                </div>
+                <p class="text-center text-orange-600 text-sm mt-3">点击二维码可放大，选择支付方式后扫码付款<br>付款后点击下方提交订单即可</p>
+            </div>
+
+            <!-- 收货信息表单 -->
+            <div class="space-y-4 mb-6">
+                <div>
+                    <label class="block font-medium mb-1">收货人ID (游戏ID)</label>
+                    <input id="gameIdInput" type="text" value="112E1R32" class="w-full border rounded-lg px-3 py-2 outline-mainPurple">
+                </div>
+                <div>
+                    <label class="block font-medium mb-1">QQ号</label>
+                    <input id="qqInput" type="text" value="3397738623" class="w-full border rounded-lg px-3 py-2 outline-mainPurple">
+                </div>
+                <div>
+                    <label class="block font-medium mb-1">游戏坐标 (格式: x y z)</label>
+                    <input id="posInput" type="text" placeholder="例如: 11214 10 11556" class="w-full border rounded-lg px-3 py-2 outline-mainPurple">
+                    <p class="text-gray-400 text-xs mt-1">请输入三个整数，中间用空格分隔 (支持负数)</p>
+                </div>
+                <div>
+                    <label class="block font-medium mb-1">备注 (可选)</label>
+                    <textarea id="noteInput" rows="2" placeholder="例如: 请把物资放在某个箱子、或者约时间交易..." class="w-full border rounded-lg px-3 py-2 outline-mainPurple"></textarea>
+                </div>
+                <!-- 验证码随机计算题 -->
+                <div class="flex items-center gap-2">
+                    <div class="flex-1">
+                        <label class="block font-medium mb-1">验证码 (计算结果)</label>
+                        <input id="verifyInput" type="text" placeholder="计算结果" class="w-full border rounded-lg px-3 py-2 outline-mainPurple">
+                    </div>
+                    <span id="verifyQuestion" class="bg-gray-200 px-4 py-3 rounded-lg mt-5 whitespace-nowrap">9 + 8 = ?</span>
+                </div>
+            </div>
+
+            <!-- 提交订单按钮 -->
+            <button onclick="submitOrder()" class="w-full py-4 bg-mainOrange text-white text-lg font-bold rounded-xl btn-press flex items-center justify-center gap-2">
+                <i class="fa fa-check"></i> 提交订单
+            </button>
+            <!-- 返回首页按钮 -->
+            <button onclick="backHome()" class="w-full mt-3 py-2 border border-gray-300 rounded-lg text-gray-600 btn-press">返回商城首页</button>
+        </div>
+    </div>
+
     <script>
-        // 商品数据库（对应你截图全部MC物品，可自行替换图片/价格）
-        const goodsList = [
-            // 护甲 armor
-            {id:1,name:"附魔紫头盔",price:28,type:"armor",img:"https://picsum.photos/seed/mchelm/128/128"},
-            {id:2,name:"红纹附魔胸甲",price:42,type:"armor",img:"https://picsum.photos/seed/mcchestred/128/128"},
-            {id:3,name:"附魔紫护腿",price:36,type:"armor",img:"https://picsum.photos/seed/mclegpurp/128/128"},
-            {id:4,name:"绿纹附魔靴子",price:24,type:"armor",img:"https://picsum.photos/seed/mcbootgreen/128/128"},
-            {id:5,name:"鞘翅",price:58,type:"armor",img:"https://picsum.photos/seed/mcwing/128/128"},
-            {id:6,name:"白纹附魔胸甲",price:45,type:"armor",img:"https://picsum.photos/seed/mcchestwhite/128/128"},
-            {id:7,name:"白纹附魔靴子",price:26,type:"armor",img:"https://picsum.photos/seed/mcbootwhite/128/128"},
-            {id:8,name:"白纹附魔护腿",price:38,type:"armor",img:"https://picsum.photos/seed/mclegwhite/128/128"},
-            // 近战武器 weapon
-            {id:9,name:"附魔紫剑",price:32,type:"weapon",img:"https://picsum.photos/seed/mcswordenchant/128/128"},
-            {id:10,name:"附魔战斧",price:36,type:"weapon",img:"https://picsum.photos/seed/mcaxeenchant/128/128"},
-            {id:11,name:"附魔长矛",price:40,type:"weapon",img:"https://picsum.photos/seed/mcspear/128/128"},
-            // 工具 tool
-            {id:12,name:"附魔镐",price:26,type:"tool",img:"https://picsum.photos/seed/mcpickenchant/128/128"},
-            // 药水 potion
-            {id:13,name:"紫色增益药水",price:12,type:"potion",img:"https://picsum.photos/seed/mcpotionpurple/128/128"},
-            {id:14,name:"复合酿造瓶",price:18,type:"potion",img:"https://picsum.photos/seed/mcpotionmix/128/128"},
-            {id:15,name:"末影珍珠",price:15,type:"potion",img:"https://picsum.photos/seed/mcenderpearl/128/128"},
-            {id:16,name:"附魔金苹果",price:22,type:"potion",img:"https://picsum.photos/seed/mcgoldapple/128/128"},
-            {id:28,name:"下界碎片",price:14,type:"potion",img:"https://picsum.photos/seed/mcnethershard/128/128"},
-            // 方块 block
-            {id:17,name:"黑曜石",price:8,type:"block",img:"https://picsum.photos/seed/mcobsidian/128/128"},
-            {id:18,name:"末影箱",price:35,type:"block",img:"https://picsum.photos/seed/mcenderchest/128/128"},
-            {id:19,name:"南瓜灯",price:6,type:"block",img:"https://picsum.photos/seed/mcpumpkinlight/128/128"},
-            {id:20,name:"红石块",price:7,type:"block",img:"https://picsum.photos/seed/mcredstoneblock/128/128"},
-            {id:21,name:"草地方块",price:5,type:"block",img:"https://picsum.photos/seed/mcgrassblock/128/128"},
-            {id:22,name:"紫颂块",price:9,type:"block",img:"https://picsum.photos/seed/mcchorusblock/128/128"},
-            {id:23,name:"萤石块",price:11,type:"block",img:"https://picsum.photos/seed/mcglowstone/128/128"},
-            {id:30,name:"诡异菌方块",price:10,type:"block",img:"https://picsum.photos/seed/mcwarpedfungus/128/128"},
-            // 远程 remote
-            {id:24,name:"附魔弩",price:38,type:"remote",img:"https://picsum.photos/seed/mccrossbowenchant/128/128"},
-            {id:25,name:"附魔弓",price:34,type:"remote",img:"https://picsum.photos/seed/mcbowenchant/128/128"},
-            {id:26,name:"烟花箭",price:4,type:"remote",img:"https://picsum.photos/seed/mcfirearrow/128/128"},
-            {id:29,name:"白色烟花",price:3,type:"remote",img:"https://picsum.photos/seed/mcwhitefirework/128/128"},
-            // 人偶 doll
-            {id:27,name:"玩家小人偶",price:16,type:"doll",img:"https://picsum.photos/seed/mcplayerdoll/128/128"},
+        // ===================== 商品数据库（完全匹配截图商品） =====================
+        const goodsData = [
+            {id:1,name:"标准装备盒",price:0.3,img:"https://picsum.photos/seed/mcbox1/128/128",searchKey:"标准装备盒 装备"},
+            {id:2,name:"珍珠kit",price:0.3,img:"https://picsum.photos/seed/mcpearl/128/128",searchKey:"珍珠kit 末影珍珠"},
+            {id:3,name:"平滑石英",price:0.3,img:"https://picsum.photos/seed/mcquartzsmooth/128/128",searchKey:"平滑石英 石英"},
+            {id:4,name:"萤石",price:0.3,img:"https://picsum.photos/seed/mcglowstone/128/128",searchKey:"萤石 照明"},
+            {id:5,name:"玻璃",price:0.3,img:"https://picsum.photos/seed/mcglass/128/128",searchKey:"玻璃 建筑"},
+            {id:6,name:"鞘翅",price:0.3,img:"https://picsum.photos/seed/mcwing/128/128",searchKey:"鞘翅 飞行"},
+            {id:7,name:"烟花",price:0.3,img:"https://picsum.photos/seed/mcfirework/128/128",searchKey:"烟花"},
+            {id:8,name:"建筑",price:0.3,img:"https://picsum.photos/seed/mcbuildblock/128/128",searchKey:"建筑 方块"},
+            {id:9,name:"Maple补给|综合第五代",price:0.3,img:"https://picsum.photos/seed/mcmaple5/128/128",searchKey:"Maple 第五代 补给"},
+            {id:10,name:"装修盒",price:0.3,img:"https://picsum.photos/seed/mcdecorbox/128/128",searchKey:"装修盒 装饰"},
+            {id:11,name:"2.0Maple补给|综合第五代",price:0.3,img:"https://picsum.photos/seed/mcmaple20/128/128",searchKey:"Maple 2.0 补给"},
+            {id:12,name:"32k(收藏无法使用)",price:0.5,img:"https://picsum.photos/seed/mc32k/128/128",searchKey:"32k 收藏 武器"},
+            {id:13,name:"霜雪cpvp装备箱",price:0.3,img:"https://picsum.photos/seed/mccpvbox/128/128",searchKey:"霜雪 cpvp 装备箱"},
+            {id:14,name:"黑曜石",price:0.3,img:"https://picsum.photos/seed/mcobsidian/128/128",searchKey:"黑曜石 传送门"},
+            {id:15,name:"xp",price:0.3,img:"https://picsum.photos/seed/mcxp/128/128",searchKey:"xp 经验"},
+            {id:16,name:"附魔金苹果",price:0.3,img:"https://picsum.photos/seed/mcgoldapple/128/128",searchKey:"附魔金苹果 金苹果"},
+            {id:17,name:"石英块",price:0.3,img:"https://picsum.photos/seed/mcquartzblock/128/128",searchKey:"石英块"},
+            {id:18,name:"爆炸就是艺术",price:0.3,img:"https://picsum.photos/seed/mctntart/128/128",searchKey:"爆炸 TNT 艺术"},
         ];
 
-        // 购物车本地存储初始化
-        let cartStorage = JSON.parse(localStorage.getItem("mcShopCartData")) || [];
+        // 购物车本地存储
+        let cartList = JSON.parse(localStorage.getItem("mcShopCart")) || [];
+        // 验证码计算题全局变量
+        let verifyNum1, verifyNum2, verifyAnswer;
 
-        // DOM快捷获取
-        const gContainer = document.getElementById("goodsContainer");
-        const emptyTipDom = document.getElementById("emptyTip");
-        const cartMaskDom = document.getElementById("cartMask");
-        const cartToggleBtn = document.getElementById("cartToggleBtn");
-        const cartCloseBtn = document.getElementById("cartCloseBtn");
-        const cartCountBadge = document.getElementById("cartCountBadge");
-        const cartEmptyText = document.getElementById("cartEmptyText");
-        const cartItemList = document.getElementById("cartItemList");
-        const cartBottomWrap = document.getElementById("cartBottomWrap");
-        const totalPriceNum = document.getElementById("totalPriceNum");
-        const clearAllCart = document.getElementById("clearAllCart");
-        const submitOrderBtn = document.getElementById("submitOrderBtn");
-        const categoryBtns = document.querySelectorAll(".category-btn");
+        // DOM元素缓存
+        const $ = s => document.querySelector(s);
+        const goodsGrid = $("#goodsGrid");
+        const cartBadgeNum = $("#cartBadgeNum");
+        const cartEmptyTip = $("#cartEmptyTip");
+        const cartItemList = $("#cartItemList");
+        const cartBottomBox = $("#cartBottomBox");
+        const cartTotalMoney = $("#cartTotalMoney");
+        const checkoutPage = $("#pageCheckout");
+        const homePage = $("#pageHome");
+        const checkoutGoodsList = $("#checkoutGoodsList");
+        const checkoutSubTotal = $("#checkoutSubTotal");
+        const checkoutTotal = $("#checkoutTotal");
+        const minTipText = $("#minTipText");
+        const payCodeImg = $("#payCodeImg");
+        const btnShopPay = $("#btnShopPay");
+        const btnSuPay = $("#btnSuPay");
+        const verifyQuestion = $("#verifyQuestion");
+        const loginModal = $("#loginModal");
 
-        // 1. 渲染商品列表（分类筛选交互）
-        function renderGoods(category = "all") {
-            gContainer.innerHTML = "";
-            let filterArr = category === "all" ? goodsList : goodsList.filter(item => item.type === category);
-            if(filterArr.length === 0) {
-                emptyTipDom.classList.remove("hidden");
+        // ===================== 初始化页面 =====================
+        initPage();
+        function initPage() {
+            renderGoods(goodsData);
+            refreshCartBadge();
+            createVerifyQuestion();
+        }
+
+        // 生成验证码数学题
+        function createVerifyQuestion() {
+            verifyNum1 = Math.floor(Math.random() * 10) + 1;
+            verifyNum2 = Math.floor(Math.random() * 10) + 1;
+            verifyAnswer = verifyNum1 + verifyNum2;
+            verifyQuestion.innerText = `${verifyNum1} + ${verifyNum2} = ?`;
+            $("#verifyInput").value = "";
+        }
+
+        // 渲染商品网格
+        function renderGoods(list) {
+            goodsGrid.innerHTML = "";
+            if(list.length === 0) {
+                goodsGrid.innerHTML = `<div class="col-span-full text-center text-gray-400 py-20">未搜索到对应商品</div>`;
                 return;
             }
-            emptyTipDom.classList.add("hidden");
-            filterArr.forEach(item => {
+            list.forEach(good => {
                 const card = document.createElement("div");
-                card.className = "goods-card bg-white rounded-lg shadow p-3";
+                card.className = "bg-white rounded-lg shadow overflow-hidden goods-card";
                 card.innerHTML = `
-                    <img src="${item.img}" alt="${item.name}" class="w-full h-28 pixel-item rounded bg-gray-100 mb-2">
-                    <h3 class="font-medium text-sm truncate">${item.name}</h3>
-                    <p class="text-mcPurple font-bold my-2">¥${item.price.toFixed(2)}</p>
-                    <button onclick="addGoodToCart(${item.id})" class="w-full py-1.5 bg-mcPurple text-white rounded btn-active text-sm">加入购物车</button>
+                    <img src="${good.img}" alt="${good.name}" class="w-full h-32 mc-item-img bg-gray-100">
+                    <div class="p-3">
+                        <h3 class="text-sm font-medium truncate">${good.name}</h3>
+                        <p class="text-red-500 font-bold my-2">¥${good.price.toFixed(2)}/件</p>
+                        <button onclick="addCart(${good.id})" class="w-full py-1.5 bg-mainPurple text-white rounded-lg btn-press text-sm flex items-center justify-center gap-1">
+                            <i class="fa fa-plus"></i> 加入购物车
+                        </button>
+                    </div>
                 `;
-                gContainer.appendChild(card);
+                goodsGrid.appendChild(card);
             })
         }
 
-        // 2. 添加商品进购物车（全局可点击）
-        window.addGoodToCart = function(goodId) {
-            const targetGood = goodsList.find(g => g.id === goodId);
-            const existed = cartStorage.find(c => c.id === goodId);
-            if(existed) existed.count += 1;
-            else cartStorage.push({...targetGood, count: 1});
-            saveCartData();
-            alert(`✅ 成功添加【${targetGood.name}】至购物车！`);
+        // 商品搜索
+        function searchGoods() {
+            const key = $("#searchInput").value.trim().toLowerCase();
+            if(!key) return renderGoods(goodsData);
+            const filter = goodsData.filter(item => item.searchKey.toLowerCase().includes(key));
+            renderGoods(filter);
         }
 
-        // 3. 修改购物车商品数量（+/-按钮交互）
-        window.modifyCartCount = function(index, delta) {
-            cartStorage[index].count += delta;
-            if(cartStorage[index].count <= 0) cartStorage.splice(index, 1);
-            saveCartData();
+        // 添加商品进购物车
+        window.addCart = function(goodId) {
+            const target = goodsData.find(g => g.id === goodId);
+            const exist = cartList.find(c => c.id === goodId);
+            if(exist) exist.count += 1;
+            else cartList.push({...target, count:1});
+            saveCart();
+            alert(`已添加【${target.name}】到购物车`);
         }
 
-        // 4. 保存购物车到本地存储 + 刷新角标、购物车列表
-        function saveCartData() {
-            localStorage.setItem("mcShopCartData", JSON.stringify(cartStorage));
+        // 修改购物车数量
+        window.changeCartNum = function(idx, delta) {
+            cartList[idx].count += delta;
+            if(cartList[idx].count <= 0) cartList.splice(idx, 1);
+            saveCart();
+        }
+
+        // 保存购物车到本地存储
+        function saveCart() {
+            localStorage.setItem("mcShopCart", JSON.stringify(cartList));
             refreshCartBadge();
             renderCartPanel();
         }
 
-        // 5. 更新右上角商品总数角标
+        // 更新购物车角标总数
         function refreshCartBadge() {
-            const totalItems = cartStorage.reduce((sum, item) => sum + item.count, 0);
-            cartCountBadge.textContent = totalItems;
+            const total = cartList.reduce((sum,item) => sum + item.count, 0);
+            cartBadgeNum.innerText = total;
         }
 
-        // 6. 渲染购物车面板内容
+        // 渲染侧边购物车面板
         function renderCartPanel() {
-            if(cartStorage.length === 0) {
-                cartEmptyText.classList.remove("hidden");
+            if(cartList.length === 0) {
+                cartEmptyTip.classList.remove("hidden");
                 cartItemList.classList.add("hidden");
-                cartBottomWrap.classList.add("hidden");
+                cartBottomBox.classList.add("hidden");
                 return;
             }
-            cartEmptyText.classList.add("hidden");
+            cartEmptyTip.classList.add("hidden");
             cartItemList.classList.remove("hidden");
-            cartBottomWrap.classList.remove("hidden");
+            cartBottomBox.classList.remove("hidden");
             cartItemList.innerHTML = "";
             let totalMoney = 0;
-            cartStorage.forEach((item, idx) => {
+            cartList.forEach((item, idx) => {
                 totalMoney += item.price * item.count;
-                const cartItemDom = document.createElement("div");
-                cartItemDom.className = "flex gap-3 border rounded p-2 items-center";
-                cartItemDom.innerHTML = `
-                    <img src="${item.img}" class="w-12 h-12 pixel-item rounded bg-gray-100">
+                const itemDom = document.createElement("div");
+                itemDom.className = "flex items-center gap-3 border rounded p-2";
+                itemDom.innerHTML = `
+                    <img src="${item.img}" class="w-10 h-10 mc-item-img rounded bg-gray-100">
                     <div class="flex-1">
-                        <p class="text-sm font-medium">${item.name}</p>
-                        <p class="text-mcPurple text-sm">¥${item.price} × ${item.count}</p>
+                        <p class="text-sm font-medium truncate">${item.name}</p>
+                        <p class="text-red-500 text-sm">¥${item.price} × ${item.count}</p>
                     </div>
                     <div class="flex gap-1">
-                        <button onclick="modifyCartCount(${idx}, -1)" class="w-7 h-7 border rounded btn-active">-</button>
-                        <button onclick="modifyCartCount(${idx}, 1)" class="w-7 h-7 border rounded btn-active">+</button>
+                        <button onclick="changeCartNum(${idx}, -1)" class="w-7 h-7 border rounded btn-press">-</button>
+                        <button onclick="changeCartNum(${idx}, 1)" class="w-7 h-7 border rounded btn-press">+</button>
                     </div>
                 `;
-                cartItemList.appendChild(cartItemDom);
+                cartItemList.appendChild(itemDom);
             })
-            totalPriceNum.textContent = totalMoney.toFixed(2);
+            cartTotalMoney.innerText = totalMoney.toFixed(2);
         }
 
-        // 7. 清空购物车交互
-        clearAllCart.addEventListener("click", () => {
-            if(confirm("⚠️ 确认清空所有购物车内商品？此操作不可撤回！")) {
-                cartStorage = [];
-                saveCartData();
-            }
-        })
-
-        // 8. 提交订单交互弹窗
-        submitOrderBtn.addEventListener("click", () => {
-            let orderMsg = "===== MC装备商城订单明细 =====\n";
-            let sumPrice = 0;
-            cartStorage.forEach(item => {
-                const singleTotal = (item.price * item.count).toFixed(2);
-                orderMsg += `${item.name} ×${item.count}  小计¥${singleTotal}\n`;
-                sumPrice += Number(singleTotal);
-            })
-            orderMsg += `---------------------------\n订单总金额：¥${sumPrice.toFixed(2)}`;
-            alert("🎉 订单提交成功！\n" + orderMsg);
-            // 下单后清空购物车并关闭面板
-            cartStorage = [];
-            saveCartData();
-            cartMaskDom.classList.add("hidden");
-        })
-
-        // 9. 分类标签点击切换交互
-        categoryBtns.forEach(btn => {
-            btn.addEventListener("click", () => {
-                // 重置所有按钮样式
-                categoryBtns.forEach(b => b.classList.remove("bg-mcPurple", "text-white"));
-                btn.classList.add("bg-mcPurple", "text-white");
-                // 重新渲染对应分类商品
-                renderGoods(btn.dataset.type);
-            })
-        })
-
-        // 10. 购物车弹窗开关交互
-        cartToggleBtn.addEventListener("click", () => {
-            cartMaskDom.classList.remove("hidden");
+        // 打开/关闭购物车弹窗
+        function openCartPanel() {
+            $("#cartModal").classList.remove("hidden");
             renderCartPanel();
-        })
-        cartCloseBtn.addEventListener("click", () => cartMaskDom.classList.add("hidden"));
-        // 点击遮罩空白区域关闭购物车
-        cartMaskDom.addEventListener("click", (e) => {
-            if(e.target === cartMaskDom) cartMaskDom.classList.add("hidden");
-        })
+        }
+        function closeCartPanel() {
+            $("#cartModal").classList.add("hidden");
+        }
 
-        // 页面初始化加载
-        renderGoods();
-        refreshCartBadge();
+        // 清空全部购物车
+        function clearAllCart() {
+            if(confirm("确认清空所有购物车商品？")) {
+                cartList = [];
+                saveCart();
+            }
+        }
+
+        // 跳转结算页面
+        function goCheckout() {
+            closeCartPanel();
+            renderCheckoutPage();
+            checkoutPage.classList.remove("hidden");
+            homePage.classList.add("hidden");
+        }
+
+        // 返回首页
+        function backHome() {
+            checkoutPage.classList.add("hidden");
+            homePage.classList.remove("hidden");
+        }
+
+        // 渲染结算页面订单商品与金额
+        function renderCheckoutPage() {
+            checkoutGoodsList.innerHTML = "";
+            let subTotal = 0;
+            cartList.forEach(item => {
+                const single = item.price * item.count;
+                subTotal += single;
+                const itemDom = document.createElement("div");
+                itemDom.className = "flex justify-between border-b pb-2";
+                itemDom.innerHTML = `
+                    <span>${item.name} ×${item.count}</span>
+                    <span>¥${single.toFixed(2)}</span>
+                `;
+                checkoutGoodsList.appendChild(itemDom);
+            })
+            checkoutSubTotal.innerText = subTotal.toFixed(2);
+            checkoutTotal.innerText = subTotal.toFixed(2);
+            // 判断是否不足1元
+            if(subTotal < 1) minTipText.classList.remove("hidden");
+            else minTipText.classList.add("hidden");
+        }
+
+        // 切换收款码标签（共用同一张Galaxy16赞赏码）
+        function switchPayCode(type) {
+            if(type === "shop") {
+                btnShopPay.classList.add("bg-mainOrange","text-white");
+                btnShopPay.classList.remove("bg-gray-200","text-gray-600");
+                btnSuPay.classList.remove("bg-mainOrange","text-white");
+                btnSuPay.classList.add("bg-gray-200","text-gray-600");
+            } else {
+                btnSuPay.classList.add("bg-mainOrange","text-white");
+                btnSuPay.classList.remove("bg-gray-200","text-gray-600");
+                btnShopPay.classList.remove("bg-mainOrange","text-white");
+                btnShopPay.classList.add("bg-gray-200","text-gray-600");
+            }
+        }
+
+        // 提交订单校验逻辑
+        function submitOrder() {
+            const gameId = $("#gameIdInput").value.trim();
+            const qq = $("#qqInput").value.trim();
+            const pos = $("#posInput").value.trim();
+            const verifyVal = $("#verifyInput").value.trim();
+            const total = Number(checkoutTotal.innerText);
+
+            // 校验1：金额最低1元
+            if(total < 1) return alert("订单金额不足1元，无法提交！请继续添加商品");
+            // 校验2：游戏ID
+            if(!gameId) return alert("请填写游戏ID");
+            // 校验3：QQ号
+            if(!qq) return alert("请填写QQ号");
+            // 校验4：坐标格式
+            const posArr = pos.split(" ").filter(x=>x);
+            if(posArr.length !== 3 || isNaN(posArr[0]) || isNaN(posArr[1]) || isNaN(posArr[2])) {
+                return alert("游戏坐标格式错误！请输入3个数字，空格分隔");
+            }
+            // 校验5：验证码计算结果
+            if(Number(verifyVal) !== verifyAnswer) {
+                createVerifyQuestion();
+                return alert("验证码答案错误，请重新计算填写");
+            }
+
+            // 订单提交成功弹窗
+            let orderText = "===== 订单提交成功 =====\n";
+            orderText += `游戏ID: ${gameId}\nQQ: ${qq}\n坐标: ${pos}\n`;
+            orderText += "商品清单:\n";
+            cartList.forEach(item=>{
+                orderText += `· ${item.name} ×${item.count}  ¥${(item.price*item.count).toFixed(2)}\n`;
+            })
+            orderText += `应付总额: ¥${total.toFixed(2)}\n请完成付款后等待店主发货！`;
+            alert(orderText);
+
+            // 提交后清空购物车、刷新验证码、返回首页
+            cartList = [];
+            saveCart();
+            createVerifyQuestion();
+            backHome();
+        }
+
+        // 底部tab切换（仅首页）
+        function switchTab(tab) {
+            if(tab === "order") alert("订单查询功能开发中");
+        }
+
+        // 退出登录提示
+        function logoutTip() {
+            loginModal.classList.remove("hidden");
+        }
+        function closeLogin() {
+            loginModal.classList.add("hidden");
+        }
     </script>
 </body>
 </html>
