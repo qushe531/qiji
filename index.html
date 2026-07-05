@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MC装备线上点单商城｜可交互版</title>
+    <!-- 在线CSS无需本地文件 -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        mcPurple: '#9146ff',
+                        mcDark: '#1e1530',
+                        mcLight: '#f3efff'
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* 像素风图片渲染，MC装备清晰 */
+        .pixel-item {
+            image-rendering: pixelated;
+            image-rendering: crisp-edges;
+        }
+        /* 自定义滚动条交互美化 */
+        ::-webkit-scrollbar {
+            width: 5px;
+            height: 5px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #9146ff;
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #eee;
+        }
+        /* 点击按压动效 */
+        .btn-active:active {
+            transform: scale(0.96);
+            opacity: 0.85;
+        }
+        /* 卡片悬浮交互 */
+        .goods-card {
+            transition: all 0.2s ease;
+        }
+        .goods-card:hover {
+            transform: translateY(-4px);
+        }
+    </style>
+</head>
+<body class="bg-mcLight min-h-screen">
+    <!-- 顶部导航栏 -->
+    <header class="bg-mcDark text-white sticky top-0 z-50 shadow-md">
+        <div class="container mx-auto px-4 py-4 flex justify-between items-center">
+            <h1 class="text-xl md:text-2xl font-bold">⚔️ MC装备商城</h1>
+            <!-- 购物车交互按钮 -->
+            <button id="cartToggleBtn" class="relative text-2xl hover:text-mcPurple transition btn-active">
+                <i class="fa fa-shopping-cart"></i>
+                <span id="cartCountBadge" class="absolute -top-2 -right-2 bg-mcPurple text-white text-xs w-5 h-5 rounded-full flex items-center justify-center">0</span>
+            </button>
+        </div>
+    </header>
+
+    <main class="container mx-auto px-3 py-6">
+        <!-- 分类切换交互栏（可横向滑动） -->
+        <div class="flex gap-2 overflow-x-auto pb-3 mb-6" style="scrollbar-height:4px;">
+            <button data-type="all" class="category-btn btn-active bg-mcPurple text-white px-4 py-2 rounded-full whitespace-nowrap">全部商品</button>
+            <button data-type="armor" class="category-btn btn-active bg-gray-200 px-4 py-2 rounded-full whitespace-nowrap hover:bg-mcPurple hover:text-white transition">附魔护甲</button>
+            <button data-type="weapon" class="category-btn btn-active bg-gray-200 px-4 py-2 rounded-full whitespace-nowrap hover:bg-mcPurple hover:text-white transition">近战武器</button>
+            <button data-type="tool" class="category-btn btn-active bg-gray-200 px-4 py-2 rounded-full whitespace-nowrap hover:bg-mcPurple hover:text-white transition">采集工具</button>
+            <button data-type="potion" class="category-btn btn-active bg-gray-200 px-4 py-2 rounded-full whitespace-nowrap hover:bg-mcPurple hover:text-white transition">药水道具</button>
+            <button data-type="block" class="category-btn btn-active bg-gray-200 px-4 py-2 rounded-full whitespace-nowrap hover:bg-mcPurple hover:text-white transition">建筑方块</button>
+            <button data-type="remote" class="category-btn btn-active bg-gray-200 px-4 py-2 rounded-full whitespace-nowrap hover:bg-mcPurple hover:text-white transition">远程装备</button>
+            <button data-type="doll" class="category-btn btn-active bg-gray-200 px-4 py-2 rounded-full whitespace-nowrap hover:bg-mcPurple hover:text-white transition">玩家人偶</button>
+        </div>
+
+        <!-- 商品渲染容器 -->
+        <div id="goodsContainer" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+        </div>
+        <!-- 无商品提示 -->
+        <div id="emptyTip" class="hidden text-center text-gray-400 py-20 text-lg">
+            <i class="fa fa-box-open text-4xl block mb-3"></i>
+            当前分类暂无商品
+        </div>
+    </main>
+
+    <!-- 购物车侧边弹窗（遮罩点击关闭交互） -->
+    <div id="cartMask" class="fixed inset-0 bg-black/65 z-[999] hidden">
+        <div class="absolute right-0 top-0 w-full sm:w-[440px] h-full bg-white shadow-2xl flex flex-col">
+            <!-- 购物车头部 -->
+            <div class="p-4 border-b flex justify-between items-center">
+                <h2 class="text-xl font-bold text-mcDark">🛒 我的购物车</h2>
+                <button id="cartCloseBtn" class="text-gray-500 text-xl hover:text-red-500 btn-active">✕</button>
+            </div>
+            <!-- 购物车滚动列表 -->
+            <div class="flex-1 overflow-y-auto p-4">
+                <div id="cartEmptyText" class="h-full flex flex-col items-center justify-center text-gray-400">
+                    <i class="fa fa-shopping-cart text-5xl mb-4"></i>
+                    <p>购物车空空如也，快去挑选装备吧</p>
+                </div>
+                <div id="cartItemList" class="hidden space-y-4"></div>
+            </div>
+            <!-- 底部结算栏 -->
+            <div id="cartBottomWrap" class="hidden border-t p-4">
+                <div class="flex justify-between text-lg font-bold mb-4">
+                    <span>合计总价：</span>
+                    <span class="text-mcPurple text-xl">¥<span id="totalPriceNum">0.00</span></span>
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <button id="clearAllCart" class="py-2 border border-gray-300 rounded-lg btn-active hover:bg-gray-100">清空购物车</button>
+                    <button id="submitOrderBtn" class="py-2 bg-mcPurple text-white rounded-lg btn-active hover:opacity-90">提交订单</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 商品数据库（对应你截图全部MC物品，可自行替换图片/价格）
+        const goodsList = [
+            // 护甲 armor
+            {id:1,name:"附魔紫头盔",price:28,type:"armor",img:"https://picsum.photos/seed/mchelm/128/128"},
+            {id:2,name:"红纹附魔胸甲",price:42,type:"armor",img:"https://picsum.photos/seed/mcchestred/128/128"},
+            {id:3,name:"附魔紫护腿",price:36,type:"armor",img:"https://picsum.photos/seed/mclegpurp/128/128"},
+            {id:4,name:"绿纹附魔靴子",price:24,type:"armor",img:"https://picsum.photos/seed/mcbootgreen/128/128"},
+            {id:5,name:"鞘翅",price:58,type:"armor",img:"https://picsum.photos/seed/mcwing/128/128"},
+            {id:6,name:"白纹附魔胸甲",price:45,type:"armor",img:"https://picsum.photos/seed/mcchestwhite/128/128"},
+            {id:7,name:"白纹附魔靴子",price:26,type:"armor",img:"https://picsum.photos/seed/mcbootwhite/128/128"},
+            {id:8,name:"白纹附魔护腿",price:38,type:"armor",img:"https://picsum.photos/seed/mclegwhite/128/128"},
+            // 近战武器 weapon
+            {id:9,name:"附魔紫剑",price:32,type:"weapon",img:"https://picsum.photos/seed/mcswordenchant/128/128"},
+            {id:10,name:"附魔战斧",price:36,type:"weapon",img:"https://picsum.photos/seed/mcaxeenchant/128/128"},
+            {id:11,name:"附魔长矛",price:40,type:"weapon",img:"https://picsum.photos/seed/mcspear/128/128"},
+            // 工具 tool
+            {id:12,name:"附魔镐",price:26,type:"tool",img:"https://picsum.photos/seed/mcpickenchant/128/128"},
+            // 药水 potion
+            {id:13,name:"紫色增益药水",price:12,type:"potion",img:"https://picsum.photos/seed/mcpotionpurple/128/128"},
+            {id:14,name:"复合酿造瓶",price:18,type:"potion",img:"https://picsum.photos/seed/mcpotionmix/128/128"},
+            {id:15,name:"末影珍珠",price:15,type:"potion",img:"https://picsum.photos/seed/mcenderpearl/128/128"},
+            {id:16,name:"附魔金苹果",price:22,type:"potion",img:"https://picsum.photos/seed/mcgoldapple/128/128"},
+            {id:28,name:"下界碎片",price:14,type:"potion",img:"https://picsum.photos/seed/mcnethershard/128/128"},
+            // 方块 block
+            {id:17,name:"黑曜石",price:8,type:"block",img:"https://picsum.photos/seed/mcobsidian/128/128"},
+            {id:18,name:"末影箱",price:35,type:"block",img:"https://picsum.photos/seed/mcenderchest/128/128"},
+            {id:19,name:"南瓜灯",price:6,type:"block",img:"https://picsum.photos/seed/mcpumpkinlight/128/128"},
+            {id:20,name:"红石块",price:7,type:"block",img:"https://picsum.photos/seed/mcredstoneblock/128/128"},
+            {id:21,name:"草地方块",price:5,type:"block",img:"https://picsum.photos/seed/mcgrassblock/128/128"},
+            {id:22,name:"紫颂块",price:9,type:"block",img:"https://picsum.photos/seed/mcchorusblock/128/128"},
+            {id:23,name:"萤石块",price:11,type:"block",img:"https://picsum.photos/seed/mcglowstone/128/128"},
+            {id:30,name:"诡异菌方块",price:10,type:"block",img:"https://picsum.photos/seed/mcwarpedfungus/128/128"},
+            // 远程 remote
+            {id:24,name:"附魔弩",price:38,type:"remote",img:"https://picsum.photos/seed/mccrossbowenchant/128/128"},
+            {id:25,name:"附魔弓",price:34,type:"remote",img:"https://picsum.photos/seed/mcbowenchant/128/128"},
+            {id:26,name:"烟花箭",price:4,type:"remote",img:"https://picsum.photos/seed/mcfirearrow/128/128"},
+            {id:29,name:"白色烟花",price:3,type:"remote",img:"https://picsum.photos/seed/mcwhitefirework/128/128"},
+            // 人偶 doll
+            {id:27,name:"玩家小人偶",price:16,type:"doll",img:"https://picsum.photos/seed/mcplayerdoll/128/128"},
+        ];
+
+        // 购物车本地存储初始化
+        let cartStorage = JSON.parse(localStorage.getItem("mcShopCartData")) || [];
+
+        // DOM快捷获取
+        const gContainer = document.getElementById("goodsContainer");
+        const emptyTipDom = document.getElementById("emptyTip");
+        const cartMaskDom = document.getElementById("cartMask");
+        const cartToggleBtn = document.getElementById("cartToggleBtn");
+        const cartCloseBtn = document.getElementById("cartCloseBtn");
+        const cartCountBadge = document.getElementById("cartCountBadge");
+        const cartEmptyText = document.getElementById("cartEmptyText");
+        const cartItemList = document.getElementById("cartItemList");
+        const cartBottomWrap = document.getElementById("cartBottomWrap");
+        const totalPriceNum = document.getElementById("totalPriceNum");
+        const clearAllCart = document.getElementById("clearAllCart");
+        const submitOrderBtn = document.getElementById("submitOrderBtn");
+        const categoryBtns = document.querySelectorAll(".category-btn");
+
+        // 1. 渲染商品列表（分类筛选交互）
+        function renderGoods(category = "all") {
+            gContainer.innerHTML = "";
+            let filterArr = category === "all" ? goodsList : goodsList.filter(item => item.type === category);
+            if(filterArr.length === 0) {
+                emptyTipDom.classList.remove("hidden");
+                return;
+            }
+            emptyTipDom.classList.add("hidden");
+            filterArr.forEach(item => {
+                const card = document.createElement("div");
+                card.className = "goods-card bg-white rounded-lg shadow p-3";
+                card.innerHTML = `
+                    <img src="${item.img}" alt="${item.name}" class="w-full h-28 pixel-item rounded bg-gray-100 mb-2">
+                    <h3 class="font-medium text-sm truncate">${item.name}</h3>
+                    <p class="text-mcPurple font-bold my-2">¥${item.price.toFixed(2)}</p>
+                    <button onclick="addGoodToCart(${item.id})" class="w-full py-1.5 bg-mcPurple text-white rounded btn-active text-sm">加入购物车</button>
+                `;
+                gContainer.appendChild(card);
+            })
+        }
+
+        // 2. 添加商品进购物车（全局可点击）
+        window.addGoodToCart = function(goodId) {
+            const targetGood = goodsList.find(g => g.id === goodId);
+            const existed = cartStorage.find(c => c.id === goodId);
+            if(existed) existed.count += 1;
+            else cartStorage.push({...targetGood, count: 1});
+            saveCartData();
+            alert(`✅ 成功添加【${targetGood.name}】至购物车！`);
+        }
+
+        // 3. 修改购物车商品数量（+/-按钮交互）
+        window.modifyCartCount = function(index, delta) {
+            cartStorage[index].count += delta;
+            if(cartStorage[index].count <= 0) cartStorage.splice(index, 1);
+            saveCartData();
+        }
+
+        // 4. 保存购物车到本地存储 + 刷新角标、购物车列表
+        function saveCartData() {
+            localStorage.setItem("mcShopCartData", JSON.stringify(cartStorage));
+            refreshCartBadge();
+            renderCartPanel();
+        }
+
+        // 5. 更新右上角商品总数角标
+        function refreshCartBadge() {
+            const totalItems = cartStorage.reduce((sum, item) => sum + item.count, 0);
+            cartCountBadge.textContent = totalItems;
+        }
+
+        // 6. 渲染购物车面板内容
+        function renderCartPanel() {
+            if(cartStorage.length === 0) {
+                cartEmptyText.classList.remove("hidden");
+                cartItemList.classList.add("hidden");
+                cartBottomWrap.classList.add("hidden");
+                return;
+            }
+            cartEmptyText.classList.add("hidden");
+            cartItemList.classList.remove("hidden");
+            cartBottomWrap.classList.remove("hidden");
+            cartItemList.innerHTML = "";
+            let totalMoney = 0;
+            cartStorage.forEach((item, idx) => {
+                totalMoney += item.price * item.count;
+                const cartItemDom = document.createElement("div");
+                cartItemDom.className = "flex gap-3 border rounded p-2 items-center";
+                cartItemDom.innerHTML = `
+                    <img src="${item.img}" class="w-12 h-12 pixel-item rounded bg-gray-100">
+                    <div class="flex-1">
+                        <p class="text-sm font-medium">${item.name}</p>
+                        <p class="text-mcPurple text-sm">¥${item.price} × ${item.count}</p>
+                    </div>
+                    <div class="flex gap-1">
+                        <button onclick="modifyCartCount(${idx}, -1)" class="w-7 h-7 border rounded btn-active">-</button>
+                        <button onclick="modifyCartCount(${idx}, 1)" class="w-7 h-7 border rounded btn-active">+</button>
+                    </div>
+                `;
+                cartItemList.appendChild(cartItemDom);
+            })
+            totalPriceNum.textContent = totalMoney.toFixed(2);
+        }
+
+        // 7. 清空购物车交互
+        clearAllCart.addEventListener("click", () => {
+            if(confirm("⚠️ 确认清空所有购物车内商品？此操作不可撤回！")) {
+                cartStorage = [];
+                saveCartData();
+            }
+        })
+
+        // 8. 提交订单交互弹窗
+        submitOrderBtn.addEventListener("click", () => {
+            let orderMsg = "===== MC装备商城订单明细 =====\n";
+            let sumPrice = 0;
+            cartStorage.forEach(item => {
+                const singleTotal = (item.price * item.count).toFixed(2);
+                orderMsg += `${item.name} ×${item.count}  小计¥${singleTotal}\n`;
+                sumPrice += Number(singleTotal);
+            })
+            orderMsg += `---------------------------\n订单总金额：¥${sumPrice.toFixed(2)}`;
+            alert("🎉 订单提交成功！\n" + orderMsg);
+            // 下单后清空购物车并关闭面板
+            cartStorage = [];
+            saveCartData();
+            cartMaskDom.classList.add("hidden");
+        })
+
+        // 9. 分类标签点击切换交互
+        categoryBtns.forEach(btn => {
+            btn.addEventListener("click", () => {
+                // 重置所有按钮样式
+                categoryBtns.forEach(b => b.classList.remove("bg-mcPurple", "text-white"));
+                btn.classList.add("bg-mcPurple", "text-white");
+                // 重新渲染对应分类商品
+                renderGoods(btn.dataset.type);
+            })
+        })
+
+        // 10. 购物车弹窗开关交互
+        cartToggleBtn.addEventListener("click", () => {
+            cartMaskDom.classList.remove("hidden");
+            renderCartPanel();
+        })
+        cartCloseBtn.addEventListener("click", () => cartMaskDom.classList.add("hidden"));
+        // 点击遮罩空白区域关闭购物车
+        cartMaskDom.addEventListener("click", (e) => {
+            if(e.target === cartMaskDom) cartMaskDom.classList.add("hidden");
+        })
+
+        // 页面初始化加载
+        renderGoods();
+        refreshCartBadge();
+    </script>
+</body>
+</html>
