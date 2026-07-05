@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>七喵小卖部 - MC物资点单商城</title>
+    <title>奇迹小卖部 - MC物资点单商城</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css">
     <script>
@@ -56,7 +56,7 @@
         <!-- 顶部导航栏 -->
         <header class="bg-mainPurple px-4 py-3 flex items-center justify-between shadow-md sticky top-0 z-40">
             <h1 class="text-white text-xl font-bold flex items-center gap-2">
-                <i class="fa fa-shopping-bag"></i> 七喵小卖部
+                <i class="fa fa-shopping-bag"></i> 奇迹小卖部
             </h1>
             <!-- 搜索框 -->
             <div class="flex flex-1 mx-4 max-w-lg">
@@ -65,7 +65,9 @@
             </div>
             <div class="flex items-center gap-4">
                 <span class="text-white text-sm hidden md:block">112E1R32</span>
-                <button class="text-white btn-press"><i class="fa fa-comment-o text-lg"></i></button>
+                <button onclick="openServiceModal()" class="text-white btn-press"><i class="fa fa-comment-o text-lg"></i></button>
+                <!-- 新增送货员入口 -->
+                <button onclick="openDeliveryPasswordModal()" class="text-white btn-press border border-white px-2 py-1 rounded text-sm">送货员后台</button>
                 <button onclick="logoutTip()" class="text-white btn-press"><i class="fa fa-sign-out"></i> 退出</button>
             </div>
         </header>
@@ -94,22 +96,62 @@
         </button>
 
         <!-- 左侧悬浮客服按钮 -->
-        <button class="fixed bottom-16 left-4 w-12 h-12 rounded-full bg-green-500 text-white shadow-lg flex items-center justify-center text-lg btn-press z-40">
+        <button onclick="openServiceModal()" class="fixed bottom-16 left-4 w-12 h-12 rounded-full bg-green-500 text-white shadow-lg flex items-center justify-center text-lg btn-press z-40">
             <i class="fa fa-comments"></i>
         </button>
     </div>
 
-    <!-- 登录弹窗（未登录显示） -->
-    <div id="loginModal" class="fixed inset-0 bg-black/60 z-[999] hidden modal-enter flex items-center justify-center">
+    <!-- 配送员密码验证弹窗（新增） -->
+    <div id="deliveryPasswordModal" class="fixed inset-0 bg-black/60 z-[1000] hidden modal-enter flex items-center justify-center">
         <div class="bg-white rounded-xl p-6 w-[90%] max-w-sm">
-            <h2 class="text-xl font-bold mb-4 text-center">七喵小卖部</h2>
+            <h2 class="text-xl font-bold mb-4 text-center text-mainPurple">配送员验证</h2>
+            <p class="text-gray-500 mb-3 text-center">请输入后台访问密码</p>
+            <input id="deliveryPwdInput" type="password" placeholder="请输入密码" class="w-full border rounded-lg px-3 py-2 mb-4">
+            <div class="grid grid-cols-2 gap-3">
+                <button onclick="closeDeliveryPasswordModal()" class="py-2 border border-gray-300 rounded-lg btn-press">取消</button>
+                <button onclick="checkDeliveryPassword()" class="py-2 bg-mainPurple text-white rounded-lg btn-press">确认登录</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 送货员后台页面 -->
+    <div id="pageDelivery" class="fixed inset-0 bg-gray-100 overflow-auto z-[995] hidden p-4 md:p-8">
+        <div class="max-w-4xl mx-auto">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-2xl font-bold text-mainPurple"><i class="fa fa-truck mr-2"></i>送货员订单后台</h2>
+                <button onclick="closeDeliveryPage()" class="px-4 py-2 bg-gray-300 rounded-lg btn-press">返回商城首页</button>
+            </div>
+            <div id="deliveryOrderWrap" class="space-y-4">
+                <!-- 订单列表JS渲染 -->
+            </div>
+            <div id="deliveryEmptyTip" class="text-center text-gray-500 py-20 text-lg hidden">
+                <i class="fa fa-file-text-o text-4xl block mb-3"></i>暂无待配送订单
+            </div>
+        </div>
+    </div>
+
+    <!-- 客服弹窗（左侧绿色按钮点击弹出） -->
+    <div id="serviceModal" class="fixed inset-0 bg-black/60 z-[999] hidden modal-enter flex items-center justify-center">
+        <div class="bg-white rounded-xl p-6 w-[90%] max-w-sm text-center">
+            <h2 class="text-xl font-bold mb-4 text-mainPurple">在线客服</h2>
+            <p class="text-gray-600 mb-2">客服QQ</p>
+            <p id="qqText" class="text-2xl font-bold text-mainOrange mb-4">3258698798</p>
+            <button onclick="copyQQ()" class="w-full py-2 bg-mainPurple text-white rounded-lg btn-press mb-3">复制QQ号</button>
+            <button onclick="closeServiceModal()" class="w-full py-2 border border-gray-300 rounded-lg text-gray-600 btn-press">关闭</button>
+        </div>
+    </div>
+
+    <!-- 登录弹窗（未登录显示） -->
+    <div id="loginModal" class="fixed inset-0 bg-black/60 z-[998] hidden modal-enter flex items-center justify-center">
+        <div class="bg-white rounded-xl p-6 w-[90%] max-w-sm">
+            <h2 class="text-xl font-bold mb-4 text-center">奇迹小卖部</h2>
             <p class="text-gray-500 mb-4 text-center">请登录后选购商品</p>
             <button onclick="closeLogin()" class="w-full py-2 bg-mainPurple text-white rounded-lg btn-press">登录</button>
         </div>
     </div>
 
     <!-- 购物车侧边弹窗 -->
-    <div id="cartModal" class="fixed inset-0 bg-black/60 z-[998] hidden modal-enter">
+    <div id="cartModal" class="fixed inset-0 bg-black/60 z-[997] hidden modal-enter">
         <div class="absolute right-0 top-0 h-full w-full sm:w-[420px] bg-white shadow-2xl flex flex-col">
             <div class="p-4 bg-mainPurple text-white flex justify-between items-center">
                 <h2 class="text-lg font-bold">我的购物车</h2>
@@ -137,7 +179,7 @@
     </div>
 
     <!-- 结算确认订单页面 -->
-    <div id="pageCheckout" class="fixed inset-0 bg-gray-100 overflow-auto z-[997] hidden p-4 md:p-8">
+    <div id="pageCheckout" class="fixed inset-0 bg-gray-100 overflow-auto z-[996] hidden p-4 md:p-8">
         <div class="max-w-2xl mx-auto bg-white rounded-xl p-6 shadow-lg">
             <h2 class="text-xl font-bold border-l-4 border-mainOrange pl-3 mb-6">确认订单 & 付款</h2>
 
@@ -166,16 +208,19 @@
                 <p id="minTipText" class="text-orange-500 text-sm mt-2 hidden"><i class="fa fa-exclamation-triangle"></i> 订单金额不足1元，请继续添加商品</p>
             </div>
 
-            <!-- 收款码切换区域 -->
+            <!-- ========== 修复后收款码区域 核心改动 ========== -->
             <div class="bg-amber-50 rounded-xl p-4 mb-6">
-                <div class="flex gap-2 mb-4 justify-center">
-                    <button onclick="switchPayCode('shop')" id="btnShopPay" class="px-6 py-2 rounded-full bg-mainOrange text-white font-medium btn-press">店长</button>
-                    <button onclick="switchPayCode('su')" id="btnSuPay" class="px-6 py-2 rounded-full bg-gray-200 text-gray-600 btn-press">激素</button>
-                </div>
-                <!-- 收款码容器 -->
+                <p class="text-center font-medium mb-4 text-gray-700">店长收款码</p>
                 <div class="flex justify-center">
-                    <div class="border-2 border-mainOrange rounded-xl p-3 bg-black max-w-xs">
-                        <img id="payCodeImg" src="https://p3-flow-imagex-sign.byteimg.com/tos-cn-i-a9rns2rl98/34111341343b403893d3d099129d3151~tplv-a9rns2rl98-image.image" alt="店长赞赏码" class="w-full mc-item-img">
+                    <!-- 固定正方形容器，限制最大宽度 -->
+                    <div class="border-2 border-mainOrange rounded-xl p-3 bg-black w-full max-w-[210px]">
+                        <!-- 1:1正方形容器，图片保持原始比例不拉伸 -->
+                        <div class="aspect-square w-full overflow-hidden rounded">
+                            <img id="payCodeImg" 
+                                 src="https://p3-flow-imagex-sign.byteimg.com/tos-cn-i-a9rns2rl98/34111341343b403893d3d099129d3151~tplv-a9rns2rl98-image.image" 
+                                 alt="店长赞赏码" 
+                                 class="w-full h-full object-contain mc-item-img block">
+                        </div>
                         <p class="text-white text-center mt-3 text-lg">“给点吧穷苦了”</p>
                         <div class="bg-amber-500 rounded-b-lg py-2 mt-2">
                             <p class="text-white text-center font-bold">Galaxy16 的赞赏码</p>
@@ -246,8 +291,14 @@
             {id:18,name:"爆炸就是艺术",price:0.3,img:"https://picsum.photos/seed/mctntart/128/128",searchKey:"爆炸 TNT 艺术"},
         ];
 
+        // 配送员后台固定密码
+        const DELIVERY_PWD = "1QAZ2WSX3EDC4RFV";
+        // 客服QQ常量
+        const serviceQQ = "3258698798";
         // 购物车本地存储
         let cartList = JSON.parse(localStorage.getItem("mcShopCart")) || [];
+        // 送货员订单存储
+        let deliveryOrderList = JSON.parse(localStorage.getItem("mcDeliveryOrder")) || [];
         // 验证码计算题全局变量
         let verifyNum1, verifyNum2, verifyAnswer;
 
@@ -266,10 +317,15 @@
         const checkoutTotal = $("#checkoutTotal");
         const minTipText = $("#minTipText");
         const payCodeImg = $("#payCodeImg");
-        const btnShopPay = $("#btnShopPay");
-        const btnSuPay = $("#btnSuPay");
         const verifyQuestion = $("#verifyQuestion");
         const loginModal = $("#loginModal");
+        const serviceModal = $("#serviceModal");
+        const qqText = $("#qqText");
+        const pageDelivery = $("#pageDelivery");
+        const deliveryOrderWrap = $("#deliveryOrderWrap");
+        const deliveryEmptyTip = $("#deliveryEmptyTip");
+        const deliveryPasswordModal = $("#deliveryPasswordModal");
+        const deliveryPwdInput = $("#deliveryPwdInput");
 
         // ===================== 初始化页面 =====================
         initPage();
@@ -277,6 +333,108 @@
             renderGoods(goodsData);
             refreshCartBadge();
             createVerifyQuestion();
+            qqText.innerText = serviceQQ;
+            renderDeliveryOrder();
+        }
+
+        // 打开配送员密码弹窗
+        function openDeliveryPasswordModal() {
+            deliveryPasswordModal.classList.remove("hidden");
+            deliveryPwdInput.value = "";
+        }
+        // 关闭密码弹窗
+        function closeDeliveryPasswordModal() {
+            deliveryPasswordModal.classList.add("hidden");
+        }
+        // 校验配送员密码
+        window.checkDeliveryPassword = function() {
+            const inputPwd = deliveryPwdInput.value.trim();
+            if(inputPwd === DELIVERY_PWD) {
+                closeDeliveryPasswordModal();
+                openDeliveryPage();
+            } else {
+                alert("密码错误，无法进入配送员后台！");
+                deliveryPwdInput.value = "";
+            }
+        }
+
+        // 打开/关闭送货员页面
+        function openDeliveryPage() {
+            pageDelivery.classList.remove("hidden");
+            renderDeliveryOrder();
+        }
+        function closeDeliveryPage() {
+            pageDelivery.classList.add("hidden");
+        }
+
+        // 渲染送货员订单列表
+        function renderDeliveryOrder() {
+            deliveryOrderWrap.innerHTML = "";
+            if(deliveryOrderList.length === 0) {
+                deliveryEmptyTip.classList.remove("hidden");
+                return;
+            }
+            deliveryEmptyTip.classList.add("hidden");
+            deliveryOrderList.forEach((order, index) => {
+                let goodsText = "";
+                order.goods.forEach(item => {
+                    goodsText += `${item.name} ×${item.count}  ¥${(item.price*item.count).toFixed(2)}\n`;
+                })
+                const orderCard = document.createElement("div");
+                orderCard.className = "bg-white rounded-xl p-5 shadow border-l-4 border-mainPurple";
+                orderCard.innerHTML = `
+                    <div class="grid md:grid-cols-2 gap-4 mb-4">
+                        <div>
+                            <p class="text-gray-500 text-sm">收货人游戏ID</p>
+                            <p class="font-bold text-lg">${order.gameId}</p>
+                        </div>
+                        <div>
+                            <p class="text-gray-500 text-sm">客户QQ</p>
+                            <p class="font-bold">${order.qq}</p>
+                        </div>
+                        <div>
+                            <p class="text-gray-500 text-sm">游戏坐标 x y z</p>
+                            <p class="font-bold text-red-600">${order.pos}</p>
+                        </div>
+                        <div>
+                            <p class="text-gray-500 text-sm">订单总金额</p>
+                            <p class="font-bold text-xl text-mainOrange">¥${order.total}</p>
+                        </div>
+                    </div>
+                    <div class="mb-4">
+                        <p class="text-gray-500 text-sm mb-1">购买商品明细</p>
+                        <textarea readonly class="w-full p-2 bg-gray-100 rounded h-28 text-sm">${goodsText}</textarea>
+                    </div>
+                    <div class="flex justify-end">
+                        <button onclick="finishOrder(${index})" class="px-5 py-2 bg-green-500 text-white rounded-lg btn-press">完成配送</button>
+                    </div>
+                `;
+                deliveryOrderWrap.appendChild(orderCard);
+            })
+        }
+
+        // 完成订单，移除订单
+        window.finishOrder = function(idx) {
+            deliveryOrderList.splice(idx, 1);
+            localStorage.setItem("mcDeliveryOrder", JSON.stringify(deliveryOrderList));
+            renderDeliveryOrder();
+            alert("已标记该订单配送完成！");
+        }
+
+        // 打开/关闭客服弹窗
+        function openServiceModal() {
+            serviceModal.classList.remove("hidden");
+        }
+        function closeServiceModal() {
+            serviceModal.classList.add("hidden");
+        }
+        // 复制客服QQ
+        function copyQQ() {
+            navigator.clipboard.writeText(serviceQQ).then(()=>{
+                alert("客服QQ已复制到剪贴板！");
+            }).catch(()=>{
+                alert("复制失败，请手动复制："+serviceQQ);
+            })
         }
 
         // 生成验证码数学题
@@ -436,22 +594,7 @@
             else minTipText.classList.add("hidden");
         }
 
-        // 切换收款码标签（共用同一张Galaxy16赞赏码）
-        function switchPayCode(type) {
-            if(type === "shop") {
-                btnShopPay.classList.add("bg-mainOrange","text-white");
-                btnShopPay.classList.remove("bg-gray-200","text-gray-600");
-                btnSuPay.classList.remove("bg-mainOrange","text-white");
-                btnSuPay.classList.add("bg-gray-200","text-gray-600");
-            } else {
-                btnSuPay.classList.add("bg-mainOrange","text-white");
-                btnSuPay.classList.remove("bg-gray-200","text-gray-600");
-                btnShopPay.classList.remove("bg-mainOrange","text-white");
-                btnShopPay.classList.add("bg-gray-200","text-gray-600");
-            }
-        }
-
-        // 提交订单校验逻辑
+        // 提交订单校验逻辑（新增存入送货员订单列表）
         function submitOrder() {
             const gameId = $("#gameIdInput").value.trim();
             const qq = $("#qqInput").value.trim();
@@ -476,21 +619,33 @@
                 return alert("验证码答案错误，请重新计算填写");
             }
 
+            // 组装订单数据存入送货员后台
+            const newOrder = {
+                gameId: gameId,
+                qq: qq,
+                pos: pos,
+                total: total.toFixed(2),
+                goods: JSON.parse(JSON.stringify(cartList))
+            };
+            deliveryOrderList.push(newOrder);
+            localStorage.setItem("mcDeliveryOrder", JSON.stringify(deliveryOrderList));
+
             // 订单提交成功弹窗
             let orderText = "===== 订单提交成功 =====\n";
-            orderText += `游戏ID: ${gameId}\nQQ: ${qq}\n坐标: ${pos}\n`;
+            orderText += `游戏ID: ${gameId}\nQQ: ${qq}\n坐标: ${pos}\n客服QQ：${serviceQQ}\n`;
             orderText += "商品清单:\n";
             cartList.forEach(item=>{
                 orderText += `· ${item.name} ×${item.count}  ¥${(item.price*item.count).toFixed(2)}\n`;
             })
-            orderText += `应付总额: ¥${total.toFixed(2)}\n请完成付款后等待店主发货！`;
+            orderText += `应付总额: ¥${total.toFixed(2)}\n请完成付款`;
             alert(orderText);
 
-            // 提交后清空购物车、刷新验证码、返回首页
+            // 提交后清空购物车、刷新验证码、返回首页、刷新送货员列表
             cartList = [];
             saveCart();
             createVerifyQuestion();
             backHome();
+            renderDeliveryOrder();
         }
 
         // 底部tab切换（仅首页）
