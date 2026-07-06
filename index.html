@@ -27,6 +27,7 @@
             min-height: 128px;
             background-color: #eee;
             transition: transform 0.25s ease;
+            cursor: zoom-in;
         }
         .mc-item-img:hover {
             transform: scale(1.2);
@@ -44,7 +45,7 @@
         /* 全局背景 替换为你的MC建筑图 */
         body {
             /* 把图片放到html同目录，命名为mc-bg.jpg */
-            background: url('./kitimg/222.jpg') no-repeat center center fixed;
+            background: url('./mc-bg.jpg') no-repeat center center fixed;
             background-size: cover;
         }
         /* 商城主内容半透明白底，文字清晰 */
@@ -52,9 +53,22 @@
             background-color: rgba(255,255,255,0.9);
             border-radius: 16px;
         }
+        /* 图片预览弹窗大图样式 */
+        .preview-img {
+            max-width: 90vw;
+            max-height: 90vh;
+            image-rendering: pixelated;
+            image-rendering: crisp-edges;
+        }
     </style>
 </head>
 <body class="min-h-screen font-sans">
+    <!-- 图片全屏预览弹窗（新增） -->
+    <div id="imgPreviewModal" class="fixed inset-0 bg-black/90 z-[2000] hidden modal-enter flex items-center justify-center p-4" onclick="closeImgPreview()">
+        <button class="absolute top-4 right-6 text-white text-4xl cursor-pointer btn-press" onclick="closeImgPreview()">×</button>
+        <img id="previewImgSrc" src="" alt="大图预览" class="preview-img" onclick="event.stopPropagation()">
+    </div>
+
     <!-- 商城首页 -->
     <div id="pageHome">
         <header class="bg-mainPurple px-4 py-3 flex items-center justify-between shadow-md sticky top-0 z-40">
@@ -218,7 +232,7 @@
                 <div class="flex justify-center">
                     <div class="border-2 border-mainOrange rounded-xl p-3 bg-black w-full max-w-[280px]">
                         <div class="aspect-square w-full overflow-hidden rounded">
-                            <img id="payCodeImg" src="./kitimg/111.png" alt="Galaxy16赞赏收款码" class="w-full h-full object-contain mc-item-img block">
+                            <img id="payCodeImg" src="./kitimg/111.png" alt="Galaxy16赞赏收款码" class="w-full h-full object-contain mc-item-img block" onclick="openImgPreview(this.src)">
                         </div>
                         <p class="text-white text-center mt-3 text-lg">“给点吧穷苦了”</p>
                         <div class="bg-amber-500 rounded-b-lg py-2 mt-2">
@@ -324,6 +338,9 @@
         const decryptPwdInput = $("#decryptPwdInput");
         const encryptStrInput = $("#encryptStrInput");
         const decryptResult = $("#decryptResult");
+        // 图片预览弹窗元素
+        const imgPreviewModal = $("#imgPreviewModal");
+        const previewImgSrc = $("#previewImgSrc");
 
         init();
         function init() {
@@ -332,6 +349,16 @@
             renderShopGoods();
             refreshCartBadge();
             qqTextShow.innerText = SERVICE_QQ;
+        }
+
+        // 图片预览弹窗函数（新增）
+        window.openImgPreview = function(imgSrc) {
+            previewImgSrc.src = imgSrc;
+            imgPreviewModal.classList.remove("hidden");
+        }
+        window.closeImgPreview = function() {
+            imgPreviewModal.classList.add("hidden");
+            previewImgSrc.src = "";
         }
 
         function checkLoginStatus() {
@@ -444,10 +471,10 @@
             filterGoods.forEach(item => {
                 const card = document.createElement("div");
                 card.className = "bg-white rounded-lg shadow overflow-hidden";
-                // 新增 img-wrap 容器做溢出裁切
+                // 图片增加点击预览 onclick
                 card.innerHTML = `
                     <div class="img-wrap h-32">
-                        <img src="${item.img}" alt="${item.name} Kit素材图" class="w-full h-full mc-item-img bg-gray-100 object-cover">
+                        <img src="${item.img}" alt="${item.name} Kit素材图" class="w-full h-full mc-item-img bg-gray-100 object-cover" onclick="openImgPreview('${item.img}')">
                     </div>
                     <div class="p-3">
                         <h3 class="text-sm font-medium truncate">${item.name}</h3>
@@ -500,7 +527,7 @@
                 const div = document.createElement("div");
                 div.className = "flex items-center gap-3 border rounded p-2";
                 div.innerHTML = `
-                    <img src="${item.img}" alt="${item.name}" class="w-10 h-10 mc-item-img rounded bg-gray-100">
+                    <img src="${item.img}" alt="${item.name}" class="w-10 h-10 mc-item-img rounded bg-gray-100 cursor-zoom-in" onclick="openImgPreview('${item.img}')">
                     <div class="flex-1">
                         <p class="text-sm font-medium truncate">${item.name}</p>
                         <p class="text-red-500 text-sm">¥${GOODS_PRICE} ×${item.count} = ¥${singlePrice}</p>
