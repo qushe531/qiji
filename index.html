@@ -23,6 +23,9 @@
         .mc-item-img {
             image-rendering: pixelated;
             image-rendering: crisp-edges;
+            /* 增加图片加载失败占位提示 */
+            min-height: 128px;
+            background-color: #eee;
         }
         ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-thumb { background: #9370E8; border-radius: 4px; }
@@ -44,7 +47,6 @@
             </div>
             <div class="flex items-center gap-3">
                 <span id="showUserName" class="text-white text-sm hidden md:block"></span>
-                <!-- 新增解密入口按钮 -->
                 <button onclick="openDecryptModal()" class="border border-white px-2 py-1 rounded text-white text-sm btn-press">信息解密</button>
                 <button onclick="logoutUser()" class="text-white btn-press"><i class="fa fa-sign-out"></i> 退出</button>
             </div>
@@ -75,7 +77,7 @@
         </button>
     </div>
 
-    <!-- 解密弹窗（首页点击信息解密打开） -->
+    <!-- 解密弹窗 -->
     <div id="decryptModal" class="fixed inset-0 bg-black/60 z-[1002] hidden modal-enter flex items-center justify-center">
         <div class="bg-white rounded-xl p-6 w-[90%] max-w-md">
             <h2 class="text-xl font-bold mb-4 text-center text-mainPurple">客户送货信息解密工具</h2>
@@ -164,7 +166,7 @@
         </div>
     </div>
 
-    <!-- 结算下单页面（新增加密字符串展示区域） -->
+    <!-- 结算下单页面 -->
     <div id="pageCheckout" class="fixed inset-0 bg-gray-100 overflow-auto z-[996] hidden p-4 md:p-8">
         <div class="max-w-2xl mx-auto bg-white rounded-xl p-6 shadow-lg">
             <h2 class="text-xl font-bold border-l-4 border-mainOrange pl-3 mb-6">确认订单 & 付款</h2>
@@ -219,7 +221,6 @@
                     <input id="posInput" type="text" placeholder="例：100 64 -200" class="w-full border rounded-lg px-3 py-2 outline-mainPurple">
                     <p class="text-gray-400 text-xs mt-1">三个数字空格分隔，支持负数坐标</p>
                 </div>
-                <!-- 加密字符串展示框 -->
                 <div>
                     <label class="block font-medium mb-1">加密送货信息串（复制发给配送）</label>
                     <textarea id="encryptResultBox" readonly rows="2" class="w-full border rounded-lg px-3 py-2 bg-gray-50 resize-none"></textarea>
@@ -245,75 +246,32 @@
     </div>
 
     <script>
-        // 全局常量配置
         const SERVICE_QQ = "3258698798";
-        const GOODS_PRICE = 0.2; // 每件商品固定0.2元
-        const DECRYPT_PASSWORD = "1QAZ2WSX3EDC4RFV"; // 解密专用密码
+        const GOODS_PRICE = 0.2;
+        const DECRYPT_PASSWORD = "1QAZ2WSX3EDC4RFV";
         let verifyA, verifyB, verifyAns;
 
-        // 本地存储工具函数
         function getLocal(key) { return JSON.parse(localStorage.getItem(key)) || []; }
         function setLocal(key, data) { localStorage.setItem(key, JSON.stringify(data)); }
 
-        // 数据存储池
         let userList = getLocal("mcUserList");
         let loginUser = getLocal("mcLoginUser")[0] || null;
-        // 【已替换为你提供10套Kit，图片对应顺序：1重锤kit 2艾伦kit 3Taem补给kit 4RE10em补给kit 5风暴重锤kit 6全能补给kit 7鞘翅kit 8烟花弩kit 9神龟kit 10长矛kit】
+
+        // ========== 关键修改：图片路径改为本地仓库相对路径 ==========
         const goodsList = [
-            {
-                id: 1,
-                name: "重锤kit",
-                img: "https://p3-flow-imagex-sign.byteimg.com/tos-cn-i-a9rns2rl98/0e569344903e41189d4f6d0699630970~tplv-a9rns2rl98-image.image"
-            },
-            {
-                id: 2,
-                name: "艾伦kit",
-                img: "https://p3-flow-imagex-sign.byteimg.com/tos-cn-i-a9rns2rl98/723c14363d4e4278a8f94b42b4963245~tplv-a9rns2rl98-image.image"
-            },
-            {
-                id: 3,
-                name: "Taem补给kit",
-                img: "https://p3-flow-imagex-sign.byteimg.com/tos-cn-i-a9rns2rl98/b13d343984824132a844d47d903d1096~tplv-a9rns2rl98-image.image"
-            },
-            {
-                id: 4,
-                name: "RE10em补给kit",
-                img: "https://p3-flow-imagex-sign.byteimg.com/tos-cn-i-a9rns2rl98/bff4d27c430d4268902f39817b328285~tplv-a9rns2rl98-image.image"
-            },
-            {
-                id: 5,
-                name: "风暴重锤kit",
-                img: "https://p3-flow-imagex-sign.byteimg.com/tos-cn-i-a9rns2rl98/a04f89d13344447491111d3923238147~tplv-a9rns2rl98-image.image"
-            },
-            {
-                id: 6,
-                name: "全能补给kit",
-                img: "https://p3-flow-imagex-sign.byteimg.com/tos-cn-i-a9rns2rl98/0faf760408434938982f139c92663398~tplv-a9rns2rl98-image.image"
-            },
-            {
-                id: 7,
-                name: "鞘翅kit",
-                img: "https://p3-flow-imagex-sign.byteimg.com/tos-cn-i-a9rns2rl98/f15a5791994b49289d117f92962d1013~tplv-a9rns2rl98-image.image"
-            },
-            {
-                id: 8,
-                name: "烟花弩kit",
-                img: "https://p3-flow-imagex-sign.byteimg.com/tos-cn-i-a9rns2rl98/aaba2422342e4020998248c9d0c23133~tplv-a9rns2rl98-image.image"
-            },
-            {
-                id: 9,
-                name: "神龟kit",
-                img: "https://p3-flow-imagex-sign.byteimg.com/tos-cn-i-a9rns2rl98/07420808117341828807f9b1893d4d76~tplv-a9rns2rl98-image.image"
-            },
-            {
-                id: 10,
-                name: "长矛kit",
-                img: "https://p3-flow-imagex-sign.byteimg.com/tos-cn-i-a9rns2rl98/95b89f9c129d47378d0f607d46962315~tplv-a9rns2rl98-image.image"
-            }
+            { id: 1, name: "重锤kit", img: "./kitimg/hammerkit.png" },
+            { id: 2, name: "艾伦kit", img: "./kitimg/allenkit.png" },
+            { id: 3, name: "Taem补给kit", img: "./kitimg/taemkit.png" },
+            { id: 4, name: "RE10em补给kit", img: "./kitimg/re10emkit.png" },
+            { id: 5, name: "风暴重锤kit", img: "./kitimg/stormhammerkit.png" },
+            { id: 6, name: "全能补给kit", img: "./kitimg/allsupplykit.png" },
+            { id: 7, name: "鞘翅kit", img: "./kitimg/elytrakit.png" },
+            { id: 8, name: "烟花弩kit", img: "./kitimg/fireworkcrossbowkit.png" },
+            { id: 9, name: "神龟kit", img: "./kitimg/turtlekidkit.png" },
+            { id: 10, name: "长矛kit", img: "./kitimg/spearkit.png" },
         ];
         let cartData = getLocal("mcCart");
 
-        // DOM快速选择器
         const $ = s => document.querySelector(s);
         const goodsGrid = $("#goodsGrid");
         const cartBadgeNum = $("#cartBadgeNum");
@@ -341,13 +299,11 @@
         const verifyInput = $("#verifyInput");
         const searchInput = $("#searchInput");
         const encryptResultBox = $("#encryptResultBox");
-        // 解密弹窗DOM
         const decryptModal = $("#decryptModal");
         const decryptPwdInput = $("#decryptPwdInput");
         const encryptStrInput = $("#encryptStrInput");
         const decryptResult = $("#decryptResult");
 
-        // 页面初始化
         init();
         function init() {
             createVerifyCode();
@@ -357,16 +313,11 @@
             qqTextShow.innerText = SERVICE_QQ;
         }
 
-        // 登录状态校验
         function checkLoginStatus() {
-            if (loginUser) {
-                showUserName.innerText = "欢迎，" + loginUser.username;
-            } else {
-                openLoginModal();
-            }
+            if (loginUser) showUserName.innerText = "欢迎，" + loginUser.username;
+            else openLoginModal();
         }
 
-        // 登录弹窗控制
         function openLoginModal() { loginModal.classList.remove("hidden"); registerModal.classList.add("hidden"); }
         function closeLoginModal() { loginModal.classList.add("hidden"); }
         function switchToRegister() { openRegisterModal(); }
@@ -385,7 +336,6 @@
             alert("登录成功！");
         }
 
-        // 注册弹窗控制
         function openRegisterModal() { registerModal.classList.remove("hidden"); loginModal.classList.add("hidden"); }
         function closeRegisterModal() { registerModal.classList.add("hidden"); }
         function switchToLogin() { openLoginModal(); }
@@ -406,7 +356,6 @@
             $("#regPwd2").value = "";
         }
 
-        // 退出登录
         window.logoutUser = function () {
             localStorage.removeItem("mcLoginUser");
             loginUser = null;
@@ -414,55 +363,43 @@
             openLoginModal();
         }
 
-        // 客服弹窗功能
         function openServiceModal() { serviceModal.classList.remove("hidden"); }
         function closeServiceModal() { serviceModal.classList.add("hidden"); }
         window.copyQQ = function () {
             navigator.clipboard.writeText(SERVICE_QQ).then(() => alert("客服QQ复制成功！"));
         }
 
-        // ========== 加密解密核心逻辑 ==========
-        // 打开解密弹窗
         function openDecryptModal() {
             decryptModal.classList.remove("hidden");
             decryptPwdInput.value = "";
             encryptStrInput.value = "";
             decryptResult.value = "";
         }
-        function closeDecryptModal() {
-            decryptModal.classList.add("hidden");
-        }
-        // 结算页生成加密字符串
+        function closeDecryptModal() { decryptModal.classList.add("hidden"); }
         window.generateEncryptStr = function () {
             const name = buyerNameInput.value.trim();
             const qq = buyerQQInput.value.trim();
             const pos = posInput.value.trim();
             if (!name || !qq || !pos) return alert("请先填写姓名、QQ、送货坐标");
-            // 拼接原始明文：姓名|QQ|坐标
             const rawText = `${name}|${qq}|${pos}`;
-            // Base64加密
             const encryptText = btoa(unescape(encodeURIComponent(rawText)));
             encryptResultBox.value = encryptText;
             alert("加密串已生成，可复制发给配送人员！");
         }
-        // 解密函数
         window.doDecrypt = function () {
             const inputPwd = decryptPwdInput.value.trim();
             const encryptText = encryptStrInput.value.trim();
             if (inputPwd !== DECRYPT_PASSWORD) return decryptResult.value = "解密密码错误！";
             if (!encryptText) return decryptResult.value = "请粘贴加密字符串";
             try {
-                // Base64解密
                 const rawText = decodeURIComponent(escape(atob(encryptText)));
                 const [name, qq, pos] = rawText.split("|");
-                const res = `客户姓名：${name}\n联系QQ：${qq}\n送货坐标：${pos}`;
-                decryptResult.value = res;
+                decryptResult.value = `客户姓名：${name}\n联系QQ：${qq}\n送货坐标：${pos}`;
             } catch (err) {
                 decryptResult.value = "加密字符串格式错误，解密失败";
             }
         }
 
-        // 商城商品渲染+搜索
         function renderShopGoods() {
             goodsGrid.innerHTML = "";
             const key = searchInput.value.trim().toLowerCase();
@@ -475,8 +412,9 @@
             filterGoods.forEach(item => {
                 const card = document.createElement("div");
                 card.className = "bg-white rounded-lg shadow overflow-hidden";
+                // 图片加载失败提示 alt + 灰色占位背景
                 card.innerHTML = `
-                    <img src="${item.img}" class="w-full h-32 mc-item-img bg-gray-100">
+                    <img src="${item.img}" alt="${item.name} Kit素材图" class="w-full h-32 mc-item-img bg-gray-100">
                     <div class="p-3">
                         <h3 class="text-sm font-medium truncate">${item.name}</h3>
                         <p class="text-red-500 font-bold my-2">¥${GOODS_PRICE.toFixed(2)}/件</p>
@@ -490,7 +428,6 @@
         }
         function searchGoods() { renderShopGoods(); }
 
-        // 购物车逻辑
         function refreshCartBadge() {
             cartData = getLocal("mcCart");
             const totalNum = cartData.reduce((s, i) => s + i.count, 0);
@@ -529,7 +466,7 @@
                 const div = document.createElement("div");
                 div.className = "flex items-center gap-3 border rounded p-2";
                 div.innerHTML = `
-                    <img src="${item.img}" class="w-10 h-10 mc-item-img rounded bg-gray-100">
+                    <img src="${item.img}" alt="${item.name}" class="w-10 h-10 mc-item-img rounded bg-gray-100">
                     <div class="flex-1">
                         <p class="text-sm font-medium truncate">${item.name}</p>
                         <p class="text-red-500 text-sm">¥${GOODS_PRICE} ×${item.count} = ¥${singlePrice}</p>
@@ -570,7 +507,6 @@
             pageHome.classList.remove("hidden");
         }
 
-        // 结算页面渲染
         function renderCheckoutPage() {
             cartData = getLocal("mcCart");
             checkoutGoodsWrap.innerHTML = "";
@@ -588,10 +524,8 @@
             if (total < 1) minOrderTip.classList.remove("hidden");
             else minOrderTip.classList.add("hidden");
             createVerifyCode();
-            // 清空上次生成的加密串
             encryptResultBox.value = "";
         }
-        // 生成验证码计算题
         function createVerifyCode() {
             verifyA = Math.floor(Math.random() * 10);
             verifyB = Math.floor(Math.random() * 10);
@@ -599,7 +533,6 @@
             verifyQuestion.innerText = `${verifyA} + ${verifyB} = ?`;
             verifyInput.value = "";
         }
-        // 提交订单
         window.submitNewOrder = function () {
             cartData = getLocal("mcCart");
             const total = cartData.reduce((s, i) => s + GOODS_PRICE * i.count, 0);
@@ -613,7 +546,6 @@
             if (posArr.length !== 3 || isNaN(posArr[0]) || isNaN(posArr[1]) || isNaN(posArr[2])) return alert("坐标格式错误，需3个数字空格分隔");
             if (code !== verifyAns) { createVerifyCode(); return alert("验证码答案错误"); }
             alert("订单提交成功！加密送货信息已生成，可复制给配送人员");
-            // 清空购物车
             cartData = []; setLocal("mcCart", cartData);
             refreshCartBadge();
             backToShop();
