@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>奇迹小卖部 - MC线上点单商城</title>
+    <title>奇迹小卖部 </title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css">
     <script>
@@ -23,7 +23,6 @@
         .mc-item-img {
             image-rendering: pixelated;
             image-rendering: crisp-edges;
-            /* 增加图片加载失败占位提示 */
             min-height: 128px;
             background-color: #eee;
         }
@@ -87,7 +86,7 @@
             </div>
             <div class="mb-4">
                 <p class="text-sm text-gray-500 mb-1">解密结果：</p>
-                <textarea id="decryptResult" rows="4" readonly class="w-full border rounded-lg px-3 py-2 bg-gray-50 resize-none"></textarea>
+                <textarea id="decryptResult" rows="6" readonly class="w-full border rounded-lg px-3 py-2 bg-gray-50 resize-none"></textarea>
             </div>
             <div class="grid grid-cols-2 gap-3">
                 <button onclick="doDecrypt()" class="py-2 bg-mainPurple text-white rounded-lg btn-press">执行解密</button>
@@ -197,7 +196,7 @@
                 <div class="flex justify-center">
                     <div class="border-2 border-mainOrange rounded-xl p-3 bg-black w-full max-w-[280px]">
                         <div class="aspect-square w-full overflow-hidden rounded">
-                            <img id="payCodeImg" src="https://p3-flow-imagex-sign.byteimg.com/tos-cn-i-a9rns2rl98/34111341343b403893d3d099129d3151~tplv-a9rns2rl98-image.image" alt="收款码" class="w-full h-full object-contain mc-item-img block">
+                            <img id="payCodeImg" src="kitimg/111.png" alt="Galaxy16赞赏收款码" class="w-full h-full object-contain mc-item-img block">
                         </div>
                         <p class="text-white text-center mt-3 text-lg">“给点吧穷苦了”</p>
                         <div class="bg-amber-500 rounded-b-lg py-2 mt-2">
@@ -205,7 +204,7 @@
                         </div>
                     </div>
                 </div>
-                <p class="text-center text-orange-600 text-sm mt-3">扫码付款后提交订单，配送员会送货上门</p>
+                <p class="text-center text-orange-600 text-sm mt-3">点击二维码可放大，选择支付方式后扫码付款，付款后提交订单</p>
             </div>
             <div class="space-y-4 mb-6">
                 <div>
@@ -221,6 +220,7 @@
                     <input id="posInput" type="text" placeholder="例：100 64 -200" class="w-full border rounded-lg px-3 py-2 outline-mainPurple">
                     <p class="text-gray-400 text-xs mt-1">三个数字空格分隔，支持负数坐标</p>
                 </div>
+                <!-- 加密字符串展示框 -->
                 <div>
                     <label class="block font-medium mb-1">加密送货信息串（复制发给配送）</label>
                     <textarea id="encryptResultBox" readonly rows="2" class="w-full border rounded-lg px-3 py-2 bg-gray-50 resize-none"></textarea>
@@ -257,7 +257,6 @@
         let userList = getLocal("mcUserList");
         let loginUser = getLocal("mcLoginUser")[0] || null;
 
-        // ========== 关键修改：图片路径改为本地仓库相对路径 ==========
         const goodsList = [
             { id: 1, name: "重锤kit", img: "./kitimg/hammerkit.png" },
             { id: 2, name: "艾伦kit", img: "./kitimg/allenkit.png" },
@@ -376,16 +375,30 @@
             decryptResult.value = "";
         }
         function closeDecryptModal() { decryptModal.classList.add("hidden"); }
+
+        // ========== 加密逻辑更新：加入购物商品清单+总价 ==========
         window.generateEncryptStr = function () {
             const name = buyerNameInput.value.trim();
             const qq = buyerQQInput.value.trim();
             const pos = posInput.value.trim();
             if (!name || !qq || !pos) return alert("请先填写姓名、QQ、送货坐标");
-            const rawText = `${name}|${qq}|${pos}`;
+            // 拼接商品清单
+            let goodsText = "";
+            let totalMoney = 0;
+            cartData.forEach(item => {
+                let sub = (GOODS_PRICE * item.count).toFixed(2);
+                totalMoney += Number(sub);
+                goodsText += `${item.name} ×${item.count} ¥${sub}\n`;
+            })
+            totalMoney = totalMoney.toFixed(2);
+            // 打包全部信息，分隔符 | 区分字段
+            const rawText = `姓名:${name}|QQ:${qq}|坐标:${pos}|总价:${totalMoney}|商品:\n${goodsText}`;
             const encryptText = btoa(unescape(encodeURIComponent(rawText)));
             encryptResultBox.value = encryptText;
             alert("加密串已生成，可复制发给配送人员！");
         }
+
+        // ========== 解密逻辑更新：完整展示全部订单信息 ==========
         window.doDecrypt = function () {
             const inputPwd = decryptPwdInput.value.trim();
             const encryptText = encryptStrInput.value.trim();
@@ -393,8 +406,7 @@
             if (!encryptText) return decryptResult.value = "请粘贴加密字符串";
             try {
                 const rawText = decodeURIComponent(escape(atob(encryptText)));
-                const [name, qq, pos] = rawText.split("|");
-                decryptResult.value = `客户姓名：${name}\n联系QQ：${qq}\n送货坐标：${pos}`;
+                decryptResult.value = "===== 客户订单完整信息 =====\n" + rawText;
             } catch (err) {
                 decryptResult.value = "加密字符串格式错误，解密失败";
             }
@@ -412,7 +424,6 @@
             filterGoods.forEach(item => {
                 const card = document.createElement("div");
                 card.className = "bg-white rounded-lg shadow overflow-hidden";
-                // 图片加载失败提示 alt + 灰色占位背景
                 card.innerHTML = `
                     <img src="${item.img}" alt="${item.name} Kit素材图" class="w-full h-32 mc-item-img bg-gray-100">
                     <div class="p-3">
