@@ -258,14 +258,58 @@
         // 数据存储池
         let userList = getLocal("mcUserList");
         let loginUser = getLocal("mcLoginUser")[0] || null;
-        // 固定商品列表，无编辑功能
+        // 【已替换为你提供10套Kit，图片对应顺序：1重锤kit 2艾伦kit 3Taem补给kit 4RE10em补给kit 5风暴重锤kit 6全能补给kit 7鞘翅kit 8烟花弩kit 9神龟kit 10长矛kit】
         const goodsList = [
-            { id: 1, name: "钻石块", img: "https://picsum.photos/id/1/128/128" },
-            { id: 2, name: "铁块", img: "https://picsum.photos/id/2/128/128" },
-            { id: 3, name: "金苹果", img: "https://picsum.photos/id/3/128/128" },
-            { id: 4, name: "附魔书", img: "https://picsum.photos/id/4/128/128" },
-            { id: 5, name: "下界合金锭", img: "https://picsum.photos/id/5/128/128" },
-            { id: 6, name: "海绵", img: "https://picsum.photos/id/6/128/128" },
+            {
+                id: 1,
+                name: "重锤kit",
+                img: "https://p3-flow-imagex-sign.byteimg.com/tos-cn-i-a9rns2rl98/0e569344903e41189d4f6d0699630970~tplv-a9rns2rl98-image.image"
+            },
+            {
+                id: 2,
+                name: "艾伦kit",
+                img: "https://p3-flow-imagex-sign.byteimg.com/tos-cn-i-a9rns2rl98/723c14363d4e4278a8f94b42b4963245~tplv-a9rns2rl98-image.image"
+            },
+            {
+                id: 3,
+                name: "Taem补给kit",
+                img: "https://p3-flow-imagex-sign.byteimg.com/tos-cn-i-a9rns2rl98/b13d343984824132a844d47d903d1096~tplv-a9rns2rl98-image.image"
+            },
+            {
+                id: 4,
+                name: "RE10em补给kit",
+                img: "https://p3-flow-imagex-sign.byteimg.com/tos-cn-i-a9rns2rl98/bff4d27c430d4268902f39817b328285~tplv-a9rns2rl98-image.image"
+            },
+            {
+                id: 5,
+                name: "风暴重锤kit",
+                img: "https://p3-flow-imagex-sign.byteimg.com/tos-cn-i-a9rns2rl98/a04f89d13344447491111d3923238147~tplv-a9rns2rl98-image.image"
+            },
+            {
+                id: 6,
+                name: "全能补给kit",
+                img: "https://p3-flow-imagex-sign.byteimg.com/tos-cn-i-a9rns2rl98/0faf760408434938982f139c92663398~tplv-a9rns2rl98-image.image"
+            },
+            {
+                id: 7,
+                name: "鞘翅kit",
+                img: "https://p3-flow-imagex-sign.byteimg.com/tos-cn-i-a9rns2rl98/f15a5791994b49289d117f92962d1013~tplv-a9rns2rl98-image.image"
+            },
+            {
+                id: 8,
+                name: "烟花弩kit",
+                img: "https://p3-flow-imagex-sign.byteimg.com/tos-cn-i-a9rns2rl98/aaba2422342e4020998248c9d0c23133~tplv-a9rns2rl98-image.image"
+            },
+            {
+                id: 9,
+                name: "神龟kit",
+                img: "https://p3-flow-imagex-sign.byteimg.com/tos-cn-i-a9rns2rl98/07420808117341828807f9b1893d4d76~tplv-a9rns2rl98-image.image"
+            },
+            {
+                id: 10,
+                name: "长矛kit",
+                img: "https://p3-flow-imagex-sign.byteimg.com/tos-cn-i-a9rns2rl98/95b89f9c129d47378d0f607d46962315~tplv-a9rns2rl98-image.image"
+            }
         ];
         let cartData = getLocal("mcCart");
 
