@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>奇迹小卖部 </title>
+    <title>奇迹小卖部 - MC线上点单商城</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css">
     <script>
@@ -165,7 +165,7 @@
         </div>
     </div>
 
-    <!-- 结算下单页面 -->
+    <!-- 结算下单页面（收款码路径已改为 ./kitimg/111.png） -->
     <div id="pageCheckout" class="fixed inset-0 bg-gray-100 overflow-auto z-[996] hidden p-4 md:p-8">
         <div class="max-w-2xl mx-auto bg-white rounded-xl p-6 shadow-lg">
             <h2 class="text-xl font-bold border-l-4 border-mainOrange pl-3 mb-6">确认订单 & 付款</h2>
@@ -191,12 +191,13 @@
                 </div>
                 <p id="minOrderTip" class="text-orange-500 text-sm mt-2 hidden"><i class="fa fa-exclamation-triangle"></i> 订单最低消费1元，请多选购商品</p>
             </div>
+            <!-- 收款码区域 图片路径已适配kitimg/111.png -->
             <div class="bg-amber-50 rounded-xl p-4 mb-6">
                 <p class="text-center font-medium mb-4 text-gray-700">店长收款码</p>
                 <div class="flex justify-center">
                     <div class="border-2 border-mainOrange rounded-xl p-3 bg-black w-full max-w-[280px]">
                         <div class="aspect-square w-full overflow-hidden rounded">
-                            <img id="payCodeImg" src="kitimg/111.png" alt="Galaxy16赞赏收款码" class="w-full h-full object-contain mc-item-img block">
+                            <img id="payCodeImg" src="./kitimg/111.png" alt="Galaxy16赞赏收款码" class="w-full h-full object-contain mc-item-img block">
                         </div>
                         <p class="text-white text-center mt-3 text-lg">“给点吧穷苦了”</p>
                         <div class="bg-amber-500 rounded-b-lg py-2 mt-2">
@@ -220,7 +221,6 @@
                     <input id="posInput" type="text" placeholder="例：100 64 -200" class="w-full border rounded-lg px-3 py-2 outline-mainPurple">
                     <p class="text-gray-400 text-xs mt-1">三个数字空格分隔，支持负数坐标</p>
                 </div>
-                <!-- 加密字符串展示框 -->
                 <div>
                     <label class="block font-medium mb-1">加密送货信息串（复制发给配送）</label>
                     <textarea id="encryptResultBox" readonly rows="2" class="w-full border rounded-lg px-3 py-2 bg-gray-50 resize-none"></textarea>
@@ -257,6 +257,7 @@
         let userList = getLocal("mcUserList");
         let loginUser = getLocal("mcLoginUser")[0] || null;
 
+        // Kit商品图片统一存放在kitimg文件夹内
         const goodsList = [
             { id: 1, name: "重锤kit", img: "./kitimg/hammerkit.png" },
             { id: 2, name: "艾伦kit", img: "./kitimg/allenkit.png" },
@@ -376,13 +377,12 @@
         }
         function closeDecryptModal() { decryptModal.classList.add("hidden"); }
 
-        // ========== 加密逻辑更新：加入购物商品清单+总价 ==========
+        // 加密生成：包含姓名、QQ、坐标、总价、全部购买商品
         window.generateEncryptStr = function () {
             const name = buyerNameInput.value.trim();
             const qq = buyerQQInput.value.trim();
             const pos = posInput.value.trim();
             if (!name || !qq || !pos) return alert("请先填写姓名、QQ、送货坐标");
-            // 拼接商品清单
             let goodsText = "";
             let totalMoney = 0;
             cartData.forEach(item => {
@@ -391,14 +391,13 @@
                 goodsText += `${item.name} ×${item.count} ¥${sub}\n`;
             })
             totalMoney = totalMoney.toFixed(2);
-            // 打包全部信息，分隔符 | 区分字段
             const rawText = `姓名:${name}|QQ:${qq}|坐标:${pos}|总价:${totalMoney}|商品:\n${goodsText}`;
             const encryptText = btoa(unescape(encodeURIComponent(rawText)));
             encryptResultBox.value = encryptText;
             alert("加密串已生成，可复制发给配送人员！");
         }
 
-        // ========== 解密逻辑更新：完整展示全部订单信息 ==========
+        // 解密输出完整订单信息
         window.doDecrypt = function () {
             const inputPwd = decryptPwdInput.value.trim();
             const encryptText = encryptStrInput.value.trim();
