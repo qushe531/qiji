@@ -32,9 +32,8 @@
     </style>
 </head>
 <body class="bg-lightBg min-h-screen font-sans">
-    <!-- 首页主页面 -->
+    <!-- 商城首页 -->
     <div id="pageHome">
-        <!-- 顶部导航 -->
         <header class="bg-mainPurple px-4 py-3 flex items-center justify-between shadow-md sticky top-0 z-40">
             <h1 class="text-white text-xl font-bold flex items-center gap-2">
                 <i class="fa fa-shopping-bag"></i> 奇迹小卖部
@@ -45,17 +44,16 @@
             </div>
             <div class="flex items-center gap-3">
                 <span id="showUserName" class="text-white text-sm hidden md:block"></span>
-                <button onclick="openDeliveryPwdModal()" class="border border-white px-2 py-1 rounded text-white text-sm btn-press">送货员后台</button>
+                <!-- 新增解密入口按钮 -->
+                <button onclick="openDecryptModal()" class="border border-white px-2 py-1 rounded text-white text-sm btn-press">信息解密</button>
                 <button onclick="logoutUser()" class="text-white btn-press"><i class="fa fa-sign-out"></i> 退出</button>
             </div>
         </header>
 
-        <!-- 商品展示区 -->
         <main class="container mx-auto px-3 py-6 pb-24">
             <div id="goodsGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4"></div>
         </main>
 
-        <!-- 底部导航 -->
         <div class="fixed bottom-0 left-0 w-full bg-white shadow-inner flex justify-center gap-6 py-3 z-30">
             <button onclick="alert('订单查询功能开发中')" class="flex items-center gap-1 text-gray-600 btn-press">
                 <i class="fa fa-search"></i> 我的订单
@@ -75,6 +73,25 @@
         <button onclick="openServiceModal()" class="fixed bottom-16 left-4 w-12 h-12 rounded-full bg-green-500 text-white shadow-lg flex items-center justify-center text-lg btn-press z-40">
             <i class="fa fa-comments"></i>
         </button>
+    </div>
+
+    <!-- 解密弹窗（首页点击信息解密打开） -->
+    <div id="decryptModal" class="fixed inset-0 bg-black/60 z-[1002] hidden modal-enter flex items-center justify-center">
+        <div class="bg-white rounded-xl p-6 w-[90%] max-w-md">
+            <h2 class="text-xl font-bold mb-4 text-center text-mainPurple">客户送货信息解密工具</h2>
+            <div class="space-y-3 mb-4">
+                <input id="decryptPwdInput" type="password" placeholder="输入解密密码：1QAZ2WSX3EDC4RFV" class="w-full border rounded-lg px-3 py-2">
+                <textarea id="encryptStrInput" rows="3" placeholder="粘贴结算生成的加密字符串" class="w-full border rounded-lg px-3 py-2 resize-none"></textarea>
+            </div>
+            <div class="mb-4">
+                <p class="text-sm text-gray-500 mb-1">解密结果：</p>
+                <textarea id="decryptResult" rows="4" readonly class="w-full border rounded-lg px-3 py-2 bg-gray-50 resize-none"></textarea>
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+                <button onclick="doDecrypt()" class="py-2 bg-mainPurple text-white rounded-lg btn-press">执行解密</button>
+                <button onclick="closeDecryptModal()" class="py-2 border border-gray-300 rounded-lg text-gray-500 btn-press">关闭</button>
+            </div>
+        </div>
     </div>
 
     <!-- 登录弹窗 -->
@@ -117,54 +134,7 @@
             <p class="text-gray-500 mb-2">客服QQ</p>
             <p id="qqTextShow" class="text-2xl font-bold text-mainOrange mb-4">3258698798</p>
             <button onclick="copyQQ()" class="w-full py-2 bg-mainPurple text-white rounded-lg btn-press mb-3">复制QQ号</button>
-            <button onclick="closeServiceModal()" class="w-full py-2 border border-gray-300 rounded-lg text-gray-600 btn-press">关闭</button>
-        </div>
-    </div>
-
-    <!-- 送货员密码验证弹窗 -->
-    <div id="deliveryPwdModal" class="fixed inset-0 bg-black/60 z-[1000] hidden modal-enter flex items-center justify-center">
-        <div class="bg-white rounded-xl p-6 w-[90%] max-w-sm">
-            <h2 class="text-xl font-bold mb-4 text-center text-mainPurple">配送员身份验证</h2>
-            <p class="text-gray-500 mb-3 text-center">请输入后台管理密码</p>
-            <input id="deliveryPwdInput" type="password" placeholder="后台密码" class="w-full border rounded-lg px-3 py-2 mb-4">
-            <div class="grid grid-cols-2 gap-3">
-                <button onclick="closeDeliveryPwdModal()" class="py-2 border border-gray-300 rounded-lg btn-press">取消</button>
-                <button onclick="checkDeliveryPassword()" class="py-2 bg-mainPurple text-white rounded-lg btn-press">确认进入</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- 送货员管理后台页面 -->
-    <div id="pageDeliveryAdmin" class="fixed inset-0 bg-gray-100 overflow-auto z-[995] hidden p-4 md:p-8">
-        <div class="max-w-5xl mx-auto">
-            <div class="flex justify-between items-center mb-6">
-                <h2 class="text-2xl font-bold text-mainPurple"><i class="fa fa-truck mr-2"></i>送货员管理后台</h2>
-                <button onclick="closeDeliveryAdmin()" class="px-4 py-2 bg-gray-300 rounded-lg btn-press">返回商城</button>
-            </div>
-
-            <!-- 商品管理区域：新增/编辑商品 -->
-            <div class="bg-white rounded-xl p-5 shadow mb-8">
-                <h3 class="text-lg font-bold mb-4 text-mainPurple">商品管理（新增/修改商品）</h3>
-                <div class="grid md:grid-cols-3 gap-4 mb-4">
-                    <input id="editGoodsName" type="text" placeholder="商品名称" class="border rounded-lg px-3 py-2">
-                    <input id="editGoodsImg" type="text" placeholder="商品图片URL" class="border rounded-lg px-3 py-2">
-                    <div class="flex gap-2">
-                        <button onclick="addNewGoods()" class="flex-1 py-2 bg-green-500 text-white rounded-lg btn-press">新增商品</button>
-                        <button onclick="saveEditGoods()" class="flex-1 py-2 bg-mainOrange text-white rounded-lg btn-press">保存修改</button>
-                    </div>
-                </div>
-                <input type="hidden" id="editGoodsId">
-                <div id="adminGoodsList" class="grid grid-cols-2 sm:grid-cols-4 gap-3"></div>
-            </div>
-
-            <!-- 订单列表区域 -->
-            <div class="bg-white rounded-xl p-5 shadow">
-                <h3 class="text-lg font-bold mb-4 text-mainPurple">待配送订单列表</h3>
-                <div id="orderWrap" class="space-y-4"></div>
-                <div id="emptyOrderTip" class="text-center text-gray-500 py-16 text-lg hidden">
-                    <i class="fa fa-file-text-o text-4xl block mb-3"></i>暂无新订单
-                </div>
-            </div>
+            <button onclick="closeServiceModal()" class="w-full py-2 border border-gray-300 rounded-lg text-gray-500 btn-press">关闭</button>
         </div>
     </div>
 
@@ -194,7 +164,7 @@
         </div>
     </div>
 
-    <!-- 结算下单页面 -->
+    <!-- 结算下单页面（新增加密字符串展示区域） -->
     <div id="pageCheckout" class="fixed inset-0 bg-gray-100 overflow-auto z-[996] hidden p-4 md:p-8">
         <div class="max-w-2xl mx-auto bg-white rounded-xl p-6 shadow-lg">
             <h2 class="text-xl font-bold border-l-4 border-mainOrange pl-3 mb-6">确认订单 & 付款</h2>
@@ -220,8 +190,6 @@
                 </div>
                 <p id="minOrderTip" class="text-orange-500 text-sm mt-2 hidden"><i class="fa fa-exclamation-triangle"></i> 订单最低消费1元，请多选购商品</p>
             </div>
-
-            <!-- 收款码区域 1:1不变形 -->
             <div class="bg-amber-50 rounded-xl p-4 mb-6">
                 <p class="text-center font-medium mb-4 text-gray-700">店长收款码</p>
                 <div class="flex justify-center">
@@ -237,8 +205,6 @@
                 </div>
                 <p class="text-center text-orange-600 text-sm mt-3">扫码付款后提交订单，配送员会送货上门</p>
             </div>
-
-            <!-- 用户收货信息 -->
             <div class="space-y-4 mb-6">
                 <div>
                     <label class="block font-medium mb-1">收货人游戏ID（客户姓名）</label>
@@ -253,6 +219,11 @@
                     <input id="posInput" type="text" placeholder="例：100 64 -200" class="w-full border rounded-lg px-3 py-2 outline-mainPurple">
                     <p class="text-gray-400 text-xs mt-1">三个数字空格分隔，支持负数坐标</p>
                 </div>
+                <!-- 加密字符串展示框 -->
+                <div>
+                    <label class="block font-medium mb-1">加密送货信息串（复制发给配送）</label>
+                    <textarea id="encryptResultBox" readonly rows="2" class="w-full border rounded-lg px-3 py-2 bg-gray-50 resize-none"></textarea>
+                </div>
                 <div>
                     <label class="block font-medium mb-1">备注（选填）</label>
                     <textarea id="noteInput" rows="2" placeholder="放置箱子/家门口等说明" class="w-full border rounded-lg px-3 py-2 outline-mainPurple"></textarea>
@@ -265,8 +236,8 @@
                     <span id="verifyQuestion" class="bg-gray-200 px-4 py-3 rounded-lg mt-5 whitespace-nowrap">5 + 7 = ?</span>
                 </div>
             </div>
-
-            <button onclick="submitNewOrder()" class="w-full py-4 bg-mainOrange text-white text-lg font-bold rounded-xl btn-press flex items-center justify-center gap-2">
+            <button onclick="generateEncryptStr()" class="w-full py-3 bg-gray-500 text-white font-bold rounded-lg btn-press mb-2">生成加密信息串</button>
+            <button onclick="submitNewOrder()" class="w-full py-4 bg-mainOrange text-white text-lg font-bold rounded-lg btn-press flex items-center justify-center gap-2">
                 <i class="fa fa-check"></i> 提交订单
             </button>
             <button onclick="backToShop()" class="w-full mt-3 py-2 border border-gray-300 rounded-lg text-gray-600 btn-press">返回商城首页</button>
@@ -274,24 +245,31 @@
     </div>
 
     <script>
-        // 全局常量
-        const DELIVERY_PASSWORD = "1QAZ2WSX3EDC4RFV";
+        // 全局常量配置
         const SERVICE_QQ = "3258698798";
         const GOODS_PRICE = 0.2; // 每件商品固定0.2元
+        const DECRYPT_PASSWORD = "1QAZ2WSX3EDC4RFV"; // 解密专用密码
         let verifyA, verifyB, verifyAns;
 
-        // 本地存储数据管理
+        // 本地存储工具函数
         function getLocal(key) { return JSON.parse(localStorage.getItem(key)) || []; }
         function setLocal(key, data) { localStorage.setItem(key, JSON.stringify(data)); }
 
-        // 数据池
-        let userList = getLocal("mcUserList"); // 注册账号
-        let loginUser = getLocal("mcLoginUser")[0] || null; // 当前登录用户
-        let goodsList = getLocal("mcGoodsList"); // 商品库（送货员可编辑）
-        let cartData = getLocal("mcCart"); // 用户购物车
-        let orderList = getLocal("mcDeliveryOrder"); // 配送订单
+        // 数据存储池
+        let userList = getLocal("mcUserList");
+        let loginUser = getLocal("mcLoginUser")[0] || null;
+        // 固定商品列表，无编辑功能
+        const goodsList = [
+            { id: 1, name: "钻石块", img: "https://picsum.photos/id/1/128/128" },
+            { id: 2, name: "铁块", img: "https://picsum.photos/id/2/128/128" },
+            { id: 3, name: "金苹果", img: "https://picsum.photos/id/3/128/128" },
+            { id: 4, name: "附魔书", img: "https://picsum.photos/id/4/128/128" },
+            { id: 5, name: "下界合金锭", img: "https://picsum.photos/id/5/128/128" },
+            { id: 6, name: "海绵", img: "https://picsum.photos/id/6/128/128" },
+        ];
+        let cartData = getLocal("mcCart");
 
-        // DOM缓存
+        // DOM快速选择器
         const $ = s => document.querySelector(s);
         const goodsGrid = $("#goodsGrid");
         const cartBadgeNum = $("#cartBadgeNum");
@@ -304,12 +282,6 @@
         const showUserName = $("#showUserName");
         const serviceModal = $("#serviceModal");
         const qqTextShow = $("#qqTextShow");
-        const deliveryPwdModal = $("#deliveryPwdModal");
-        const deliveryPwdInput = $("#deliveryPwdInput");
-        const pageDeliveryAdmin = $("#pageDeliveryAdmin");
-        const adminGoodsList = $("#adminGoodsList");
-        const orderWrap = $("#orderWrap");
-        const emptyOrderTip = $("#emptyOrderTip");
         const pageHome = $("#pageHome");
         const pageCheckout = $("#pageCheckout");
         const cartPanel = $("#cartPanel");
@@ -318,23 +290,18 @@
         const checkoutGoodsWrap = $("#checkoutGoodsWrap");
         const checkoutTotalNum = $("#checkoutTotalNum");
         const checkoutPayNum = $("#checkoutPayNum");
-        const editGoodsName = $("#editGoodsName");
-        const editGoodsImg = $("#editGoodsImg");
-        const editGoodsId = $("#editGoodsId");
         const buyerNameInput = $("#buyerNameInput");
         const buyerQQInput = $("#buyerQQInput");
         const posInput = $("#posInput");
         const noteInput = $("#noteInput");
         const verifyInput = $("#verifyInput");
         const searchInput = $("#searchInput");
-
-        // 跨标签同步订单监听
-        window.addEventListener("storage", e => {
-            if (e.key === "mcDeliveryOrder") renderDeliveryOrderList();
-            if (e.key === "mcGoodsList") renderShopGoods();
-        });
-        // 5秒自动刷新订单兜底，解决多窗口不同步
-        setInterval(() => renderDeliveryOrderList(), 5000);
+        const encryptResultBox = $("#encryptResultBox");
+        // 解密弹窗DOM
+        const decryptModal = $("#decryptModal");
+        const decryptPwdInput = $("#decryptPwdInput");
+        const encryptStrInput = $("#encryptStrInput");
+        const decryptResult = $("#decryptResult");
 
         // 页面初始化
         init();
@@ -343,21 +310,10 @@
             checkLoginStatus();
             renderShopGoods();
             refreshCartBadge();
-            renderDeliveryOrderList();
             qqTextShow.innerText = SERVICE_QQ;
-            // 初始化默认商品（无商品时自动生成）
-            if (goodsList.length === 0) {
-                goodsList = [
-                    { id: 1, name: "钻石块", img: "https://picsum.photos/id/1/128/128" },
-                    { id: 2, name: "铁块", img: "https://picsum.photos/id/2/128/128" },
-                    { id: 3, name: "金苹果", img: "https://picsum.photos/id/3/128/128" },
-                ];
-                setLocal("mcGoodsList", goodsList);
-                renderShopGoods();
-            }
         }
 
-        // 登录检测
+        // 登录状态校验
         function checkLoginStatus() {
             if (loginUser) {
                 showUserName.innerText = "欢迎，" + loginUser.username;
@@ -370,7 +326,7 @@
         function openLoginModal() { loginModal.classList.remove("hidden"); registerModal.classList.add("hidden"); }
         function closeLoginModal() { loginModal.classList.add("hidden"); }
         function switchToRegister() { openRegisterModal(); }
-        function loginSubmit() {
+        window.loginSubmit = function () {
             const u = $("#loginUsername").value.trim();
             const p = $("#loginPwd").value.trim();
             const user = userList.find(item => item.username === u && item.password === p);
@@ -389,14 +345,14 @@
         function openRegisterModal() { registerModal.classList.remove("hidden"); loginModal.classList.add("hidden"); }
         function closeRegisterModal() { registerModal.classList.add("hidden"); }
         function switchToLogin() { openLoginModal(); }
-        function registerSubmit() {
+        window.registerSubmit = function () {
             const u = $("#regUsername").value.trim();
             const p = $("#regPwd").value.trim();
             const p2 = $("#regPwd2").value.trim();
             if (!u || !p) return alert("账号密码不能为空");
-            if (p !== p2) return alert("两次密码不一致");
+            if (p !== p2) return alert("两次输入密码不一致");
             if (p.length < 4) return alert("密码至少4位");
-            if (userList.find(item => item.username === u)) return alert("账号已被注册");
+            if (userList.find(item => item.username === u)) return alert("该账号已被注册");
             userList.push({ username: u, password: p });
             setLocal("mcUserList", userList);
             alert("注册成功，请登录");
@@ -407,163 +363,64 @@
         }
 
         // 退出登录
-        function logoutUser() {
+        window.logoutUser = function () {
             localStorage.removeItem("mcLoginUser");
             loginUser = null;
             showUserName.innerText = "";
             openLoginModal();
         }
 
-        // 客服弹窗
+        // 客服弹窗功能
         function openServiceModal() { serviceModal.classList.remove("hidden"); }
         function closeServiceModal() { serviceModal.classList.add("hidden"); }
-        function copyQQ() {
+        window.copyQQ = function () {
             navigator.clipboard.writeText(SERVICE_QQ).then(() => alert("客服QQ复制成功！"));
         }
 
-        // 送货员密码弹窗
-        function openDeliveryPwdModal() { deliveryPwdModal.classList.remove("hidden"); deliveryPwdInput.value = ""; }
-        function closeDeliveryPwdModal() { deliveryPwdModal.classList.add("hidden"); }
-        function checkDeliveryPassword() {
-            const input = deliveryPwdInput.value.trim();
-            if (input === DELIVERY_PASSWORD) {
-                closeDeliveryPwdModal();
-                openDeliveryAdminPage();
-            } else {
-                alert("密码错误，禁止进入后台");
-                deliveryPwdInput.value = "";
+        // ========== 加密解密核心逻辑 ==========
+        // 打开解密弹窗
+        function openDecryptModal() {
+            decryptModal.classList.remove("hidden");
+            decryptPwdInput.value = "";
+            encryptStrInput.value = "";
+            decryptResult.value = "";
+        }
+        function closeDecryptModal() {
+            decryptModal.classList.add("hidden");
+        }
+        // 结算页生成加密字符串
+        window.generateEncryptStr = function () {
+            const name = buyerNameInput.value.trim();
+            const qq = buyerQQInput.value.trim();
+            const pos = posInput.value.trim();
+            if (!name || !qq || !pos) return alert("请先填写姓名、QQ、送货坐标");
+            // 拼接原始明文：姓名|QQ|坐标
+            const rawText = `${name}|${qq}|${pos}`;
+            // Base64加密
+            const encryptText = btoa(unescape(encodeURIComponent(rawText)));
+            encryptResultBox.value = encryptText;
+            alert("加密串已生成，可复制发给配送人员！");
+        }
+        // 解密函数
+        window.doDecrypt = function () {
+            const inputPwd = decryptPwdInput.value.trim();
+            const encryptText = encryptStrInput.value.trim();
+            if (inputPwd !== DECRYPT_PASSWORD) return decryptResult.value = "解密密码错误！";
+            if (!encryptText) return decryptResult.value = "请粘贴加密字符串";
+            try {
+                // Base64解密
+                const rawText = decodeURIComponent(escape(atob(encryptText)));
+                const [name, qq, pos] = rawText.split("|");
+                const res = `客户姓名：${name}\n联系QQ：${qq}\n送货坐标：${pos}`;
+                decryptResult.value = res;
+            } catch (err) {
+                decryptResult.value = "加密字符串格式错误，解密失败";
             }
         }
 
-        // 打开送货员后台
-        function openDeliveryAdminPage() {
-            pageDeliveryAdmin.classList.remove("hidden");
-            renderAdminGoodsList();
-            renderDeliveryOrderList();
-        }
-        function closeDeliveryAdmin() { pageDeliveryAdmin.classList.add("hidden"); }
-
-        // 送货员：渲染可编辑商品列表
-        function renderAdminGoodsList() {
-            adminGoodsList.innerHTML = "";
-            goodsList = getLocal("mcGoodsList");
-            goodsList.forEach(item => {
-                const div = document.createElement("div");
-                div.className = "border rounded-lg p-2 relative";
-                div.innerHTML = `
-                    <img src="${item.img}" class="w-full h-20 object-contain mb-2">
-                    <p class="text-sm font-medium truncate">${item.name}</p>
-                    <div class="flex gap-1 mt-2">
-                        <button onclick="editGoods(${item.id})" class="flex-1 py-1 bg-mainOrange text-white text-sm rounded btn-press">编辑</button>
-                        <button onclick="delGoods(${item.id})" class="flex-1 py-1 bg-red-500 text-white text-sm rounded btn-press">删除</button>
-                    </div>
-                `;
-                adminGoodsList.appendChild(div);
-            })
-        }
-        // 新增商品
-        function addNewGoods() {
-            const name = editGoodsName.value.trim();
-            const img = editGoodsImg.value.trim();
-            if (!name || !img) return alert("请填写商品名称和图片链接");
-            const newId = goodsList.length > 0 ? Math.max(...goodsList.map(i => i.id)) + 1 : 1;
-            goodsList.push({ id: newId, name, img });
-            setLocal("mcGoodsList", goodsList);
-            renderAdminGoodsList();
-            renderShopGoods();
-            editGoodsName.value = "";
-            editGoodsImg.value = "";
-        }
-        // 编辑商品回填
-        window.editGoods = function(id) {
-            const item = goodsList.find(g => g.id === id);
-            editGoodsId.value = id;
-            editGoodsName.value = item.name;
-            editGoodsImg.value = item.img;
-        }
-        // 保存修改商品
-        function saveEditGoods() {
-            const id = Number(editGoodsId.value);
-            const name = editGoodsName.value.trim();
-            const img = editGoodsImg.value.trim();
-            if (!id || !name || !img) return alert("请完整填写信息");
-            const idx = goodsList.findIndex(g => g.id === id);
-            goodsList[idx] = { id, name, img };
-            setLocal("mcGoodsList", goodsList);
-            renderAdminGoodsList();
-            renderShopGoods();
-            editGoodsName.value = "";
-            editGoodsImg.value = "";
-            editGoodsId.value = "";
-            alert("商品修改保存成功");
-        }
-        // 删除商品
-        window.delGoods = function(id) {
-            if (!confirm("确定删除该商品？")) return;
-            goodsList = goodsList.filter(g => g.id !== id);
-            setLocal("mcGoodsList", goodsList);
-            renderAdminGoodsList();
-            renderShopGoods();
-        }
-
-        // 送货员：渲染订单列表（客户姓名、坐标、商品、金额、完成按钮）
-        function renderDeliveryOrderList() {
-            orderWrap.innerHTML = "";
-            orderList = getLocal("mcDeliveryOrder");
-            if (orderList.length === 0) {
-                emptyOrderTip.classList.remove("hidden");
-                return;
-            }
-            emptyOrderTip.classList.add("hidden");
-            orderList.forEach((order, index) => {
-                let goodsText = "";
-                order.goods.forEach(g => {
-                    goodsText += `${g.name} ×${g.count}  ¥${(GOODS_PRICE * g.count).toFixed(2)}\n`;
-                })
-                const div = document.createElement("div");
-                div.className = "bg-gray-50 rounded-xl p-5 border-l-4 border-mainPurple shadow";
-                div.innerHTML = `
-                    <div class="grid md:grid-cols-2 gap-3 mb-3">
-                        <div>
-                            <p class="text-sm text-gray-500">收货人游戏ID（客户姓名）</p>
-                            <p class="font-bold text-lg">${order.buyerName}</p>
-                        </div>
-                        <div>
-                            <p class="text-sm text-gray-500">联系QQ</p>
-                            <p class="font-bold">${order.buyerQQ}</p>
-                        </div>
-                        <div>
-                            <p class="text-sm text-gray-500">送货坐标 XYZ</p>
-                            <p class="font-bold text-red-600">${order.pos}</p>
-                        </div>
-                        <div>
-                            <p class="text-sm text-gray-500">订单总金额</p>
-                            <p class="font-bold text-xl text-mainOrange">¥${order.totalMoney}</p>
-                        </div>
-                    </div>
-                    <div class="mb-4">
-                        <p class="text-sm text-gray-500 mb-1">购买商品明细</p>
-                        <textarea readonly class="w-full p-2 bg-white rounded h-24 text-sm">${goodsText}</textarea>
-                    </div>
-                    <div class="flex justify-end">
-                        <button onclick="finishDelivery(${index})" class="px-5 py-2 bg-green-500 text-white rounded-lg btn-press">配送完成</button>
-                    </div>
-                `;
-                orderWrap.appendChild(div);
-            })
-        }
-        // 完成配送，移除订单
-        window.finishDelivery = function(idx) {
-            orderList.splice(idx, 1);
-            setLocal("mcDeliveryOrder", orderList);
-            renderDeliveryOrderList();
-            alert("已标记订单配送完成！");
-        }
-
-        // 商城首页渲染商品
+        // 商城商品渲染+搜索
         function renderShopGoods() {
             goodsGrid.innerHTML = "";
-            goodsList = getLocal("mcGoodsList");
             const key = searchInput.value.trim().toLowerCase();
             let filterGoods = goodsList;
             if (key) filterGoods = goodsList.filter(g => g.name.toLowerCase().includes(key));
@@ -587,17 +444,15 @@
                 goodsGrid.appendChild(card);
             })
         }
-        // 商品搜索
         function searchGoods() { renderShopGoods(); }
 
-        // 购物车操作
+        // 购物车逻辑
         function refreshCartBadge() {
             cartData = getLocal("mcCart");
             const totalNum = cartData.reduce((s, i) => s + i.count, 0);
             cartBadgeNum.innerText = totalNum;
         }
-        // 添加商品进购物车
-        window.addCartItem = function(id) {
+        window.addCartItem = function (id) {
             const item = goodsList.find(g => g.id === id);
             const exist = cartData.find(c => c.id === id);
             if (exist) exist.count += 1;
@@ -606,13 +461,11 @@
             refreshCartBadge();
             alert(`已添加【${item.name}】到购物车`);
         }
-        // 打开购物车侧边栏
         function openCartPanel() {
             cartPanel.classList.remove("hidden");
             renderCartPanel();
         }
         function closeCartPanel() { cartPanel.classList.add("hidden"); }
-        // 渲染购物车
         function renderCartPanel() {
             cartData = getLocal("mcCart");
             if (cartData.length === 0) {
@@ -646,35 +499,30 @@
             })
             cartTotalPrice.innerText = total.toFixed(2);
         }
-        // 购物车增减数量
-        window.cartPlus = function(idx) {
+        window.cartPlus = function (idx) {
             cartData[idx].count += 1; setLocal("mcCart", cartData); renderCartPanel(); refreshCartBadge();
         }
-        window.cartMinus = function(idx) {
+        window.cartMinus = function (idx) {
             cartData[idx].count -= 1;
             if (cartData[idx].count <= 0) cartData.splice(idx, 1);
             setLocal("mcCart", cartData); renderCartPanel(); refreshCartBadge();
         }
-        // 清空购物车
         function clearAllCart() {
             if (!confirm("确认清空全部商品？")) return;
             cartData = []; setLocal("mcCart", cartData); renderCartPanel(); refreshCartBadge();
         }
-        // 跳转结算页
         function goCheckoutPage() {
             closeCartPanel();
             renderCheckoutPage();
             pageCheckout.classList.remove("hidden");
             pageHome.classList.add("hidden");
         }
-        // 返回商城
         function backToShop() {
             pageCheckout.classList.add("hidden");
             pageHome.classList.remove("hidden");
         }
         function switchPageHome() {
             pageCheckout.classList.add("hidden");
-            pageDeliveryAdmin.classList.add("hidden");
             pageHome.classList.remove("hidden");
         }
 
@@ -696,8 +544,10 @@
             if (total < 1) minOrderTip.classList.remove("hidden");
             else minOrderTip.classList.add("hidden");
             createVerifyCode();
+            // 清空上次生成的加密串
+            encryptResultBox.value = "";
         }
-        // 生成验证码
+        // 生成验证码计算题
         function createVerifyCode() {
             verifyA = Math.floor(Math.random() * 10);
             verifyB = Math.floor(Math.random() * 10);
@@ -705,8 +555,8 @@
             verifyQuestion.innerText = `${verifyA} + ${verifyB} = ?`;
             verifyInput.value = "";
         }
-        // 提交订单存入送货员后台
-        function submitNewOrder() {
+        // 提交订单
+        window.submitNewOrder = function () {
             cartData = getLocal("mcCart");
             const total = cartData.reduce((s, i) => s + GOODS_PRICE * i.count, 0);
             if (total < 1) return alert("订单金额不足1元，无法下单");
@@ -718,21 +568,10 @@
             const posArr = pos.split(" ").filter(x => x);
             if (posArr.length !== 3 || isNaN(posArr[0]) || isNaN(posArr[1]) || isNaN(posArr[2])) return alert("坐标格式错误，需3个数字空格分隔");
             if (code !== verifyAns) { createVerifyCode(); return alert("验证码答案错误"); }
-            // 组装订单
-            const newOrder = {
-                buyerName: name,
-                buyerQQ: qq,
-                pos: pos,
-                totalMoney: total.toFixed(2),
-                goods: JSON.parse(JSON.stringify(cartData))
-            };
-            orderList.push(newOrder);
-            setLocal("mcDeliveryOrder", orderList);
-            alert("订单提交成功！配送员将尽快上门");
+            alert("订单提交成功！加密送货信息已生成，可复制给配送人员");
             // 清空购物车
             cartData = []; setLocal("mcCart", cartData);
             refreshCartBadge();
-            // 返回商城
             backToShop();
         }
     </script>
