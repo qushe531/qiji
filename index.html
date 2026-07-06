@@ -20,20 +20,41 @@
         }
     </script>
     <style>
+        /* 商品图片基础+悬浮放大 */
         .mc-item-img {
             image-rendering: pixelated;
             image-rendering: crisp-edges;
             min-height: 128px;
             background-color: #eee;
+            transition: transform 0.25s ease;
+        }
+        .mc-item-img:hover {
+            transform: scale(1.2);
+        }
+        /* 商品卡片图片容器裁切溢出 */
+        .img-wrap {
+            overflow: hidden;
         }
         ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-thumb { background: #9370E8; border-radius: 4px; }
         .btn-press:active { transform: scale(0.97); opacity: 0.9; }
         .modal-enter { animation: fadeIn 0.2s ease; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        /* 全局背景 替换为你的MC建筑图 */
+        body {
+            /* 把图片放到html同目录，命名为mc-bg.jpg */
+            background: url('./kitimg/222.jpg') no-repeat center center fixed;
+            background-size: cover;
+        }
+        /* 商城主内容半透明白底，文字清晰 */
+        #pageHome main {
+            background-color: rgba(255,255,255,0.9);
+            border-radius: 16px;
+        }
     </style>
 </head>
-<body class="bg-lightBg min-h-screen font-sans">
+<body class="min-h-screen font-sans">
     <!-- 商城首页 -->
     <div id="pageHome">
         <header class="bg-mainPurple px-4 py-3 flex items-center justify-between shadow-md sticky top-0 z-40">
@@ -51,7 +72,7 @@
             </div>
         </header>
 
-        <main class="container mx-auto px-3 py-6 pb-24">
+        <main class="container mx-auto px-3 py-6 pb-24 mt-4">
             <div id="goodsGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4"></div>
         </main>
 
@@ -423,8 +444,11 @@
             filterGoods.forEach(item => {
                 const card = document.createElement("div");
                 card.className = "bg-white rounded-lg shadow overflow-hidden";
+                // 新增 img-wrap 容器做溢出裁切
                 card.innerHTML = `
-                    <img src="${item.img}" alt="${item.name} Kit素材图" class="w-full h-32 mc-item-img bg-gray-100">
+                    <div class="img-wrap h-32">
+                        <img src="${item.img}" alt="${item.name} Kit素材图" class="w-full h-full mc-item-img bg-gray-100 object-cover">
+                    </div>
                     <div class="p-3">
                         <h3 class="text-sm font-medium truncate">${item.name}</h3>
                         <p class="text-red-500 font-bold my-2">¥${GOODS_PRICE.toFixed(2)}/件</p>
