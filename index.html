@@ -284,6 +284,7 @@
         const SERVICE_QQ = "3258698798";
         const GOODS_PRICE = 0.2;
         const DECRYPT_PASSWORD = "1QAZ2WSX3EDC4RFV";
+        const MAX_SINGLE_GOODS_NUM = 27; // 单款商品最大购买27盒限制
         let verifyA, verifyB, verifyAns;
 
         function getLocal(key) { return JSON.parse(localStorage.getItem(key)) || []; }
@@ -293,6 +294,7 @@
         let loginUser = getLocal("mcLoginUser")[0] || null;
 
         // Kit商品图片统一存放在kitimg文件夹内
+        // 原有10个 + 新增10个共20款商品
         const goodsList = [
             { id: 1, name: "重锤kit", img: "./kitimg/hammerkit.png" },
             { id: 2, name: "艾伦kit", img: "./kitimg/allenkit.png" },
@@ -304,6 +306,17 @@
             { id: 8, name: "烟花弩kit", img: "./kitimg/fireworkcrossbowkit.png" },
             { id: 9, name: "神龟kit", img: "./kitimg/turtlekidkit.png" },
             { id: 10, name: "长矛kit", img: "./kitimg/spearkit.png" },
+            // 新增10款商品
+            { id: 11, name: "标准PVPkit", img: "./kitimg/stdpvpkit.png" },
+            { id: 12, name: "RE10em2.0kit", img: "./kitimg/re10em2kit.png" },
+            { id: 13, name: "全能补给2型kit", img: "./kitimg/allsupply2kit.png" },
+            { id: 14, name: "重生锚kit", img: "./kitimg/respawnanchor.png" },
+            { id: 15, name: "仅此のPVPkit", img: "./kitimg/onlypvpkit.png" },
+            { id: 16, name: "一键升天kit", img: "./kitimg/skykit.png" },
+            { id: 17, name: "附魔金kit", img: "./kitimg/enchgoldkit.png" },
+            { id: 18, name: "dupe嗅探兽刷kit", img: "./kitimg/snifferdupekit.png" },
+            { id: 19, name: "xp kit", img: "./kitimg/xpkit.png" },
+            { id: 20, name: "图腾kit", img: "./kitimg/totemkit.png" },
         ];
         let cartData = getLocal("mcCart");
 
@@ -497,8 +510,15 @@
         window.addCartItem = function (id) {
             const item = goodsList.find(g => g.id === id);
             const exist = cartData.find(c => c.id === id);
-            if (exist) exist.count += 1;
-            else cartData.push({ id, name: item.name, img: item.img, count: 1 });
+            // 判断是否达到27盒上限
+            if (exist) {
+                if (exist.count >= MAX_SINGLE_GOODS_NUM) {
+                    return alert(`【${item.name}】单款最多只能购买${MAX_SINGLE_GOODS_NUM}盒，已达上限！`);
+                }
+                exist.count += 1;
+            } else {
+                cartData.push({ id, name: item.name, img: item.img, count: 1 });
+            }
             setLocal("mcCart", cartData);
             refreshCartBadge();
             alert(`已添加【${item.name}】到购物车`);
@@ -542,7 +562,16 @@
             cartTotalPrice.innerText = total.toFixed(2);
         }
         window.cartPlus = function (idx) {
-            cartData[idx].count += 1; setLocal("mcCart", cartData); renderCartPanel(); refreshCartBadge();
+            cartData = getLocal("mcCart");
+            const targetItem = cartData[idx];
+            // 购物车加号增加数量限制
+            if (targetItem.count >= MAX_SINGLE_GOODS_NUM) {
+                return alert(`【${targetItem.name}】单款最多只能购买${MAX_SINGLE_GOODS_NUM}盒，无法继续增加！`);
+            }
+            cartData[idx].count += 1; 
+            setLocal("mcCart", cartData); 
+            renderCartPanel(); 
+            refreshCartBadge();
         }
         window.cartMinus = function (idx) {
             cartData[idx].count -= 1;
